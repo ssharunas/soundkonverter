@@ -13,7 +13,6 @@
         </Menu>
         <Menu name="conversion"><Text>Conversion</Text>
             <Action name="start" />
-            <Action name="stop_menu" />
             <Separator />
             <Action name="logviewer" />
         </Menu>

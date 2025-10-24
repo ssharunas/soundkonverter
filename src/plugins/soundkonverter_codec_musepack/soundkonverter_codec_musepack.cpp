@@ -8,13 +8,16 @@
 #include <QFile>
 #include <QStandardPaths>
 
+#define BINARY_ENC "mppenc(v7) or mpcenc(v8)"
+#define BINARY_DEC "mppdec(v7) or mpcdec(v8)"
+
 soundkonverter_codec_musepack::soundkonverter_codec_musepack(QObject *parent, const KPluginMetaData &metadata, const QVariantList &args)
     : CodecPlugin(parent)
 {
     Q_UNUSED(args)
 
-    binaries["mppenc"] = "";
-    binaries["mppdec"] = "";
+    binaries[BINARY_ENC] = "";
+    binaries[BINARY_DEC] = "";
 
     allCodecs += "musepack";
     allCodecs += "wav";
@@ -31,33 +34,33 @@ QString soundkonverter_codec_musepack::name() const
 
 void soundkonverter_codec_musepack::scanForBackends(const QStringList &directoryList)
 {
-    binaries["mppenc"] = QStandardPaths::findExecutable("mppenc"); // sv7
-    if (binaries["mppenc"].isEmpty())
-        binaries["mppenc"] = QStandardPaths::findExecutable("mpcenc"); // sv8
+    binaries[BINARY_ENC] = QStandardPaths::findExecutable("mppenc"); // sv7
+    if (binaries[BINARY_ENC].isEmpty())
+        binaries[BINARY_ENC] = QStandardPaths::findExecutable("mpcenc"); // sv8
 
-    if (binaries["mppenc"].isEmpty()) {
+    if (binaries[BINARY_ENC].isEmpty()) {
         for (QList<QString>::const_iterator b = directoryList.begin(); b != directoryList.end(); ++b) {
             if (QFile::exists((*b) + "/mppenc")) {
-                binaries["mppenc"] = (*b) + "/mppenc";
+                binaries[BINARY_ENC] = (*b) + "/mppenc";
                 break;
             } else if (QFile::exists((*b) + "/mpcenc")) {
-                binaries["mppenc"] = (*b) + "/mpcenc";
+                binaries[BINARY_ENC] = (*b) + "/mpcenc";
                 break;
             }
         }
     }
 
-    binaries["mppdec"] = QStandardPaths::findExecutable("mppdec"); // sv7
-    if (binaries["mppdec"].isEmpty())
-        binaries["mppdec"] = QStandardPaths::findExecutable("mpcdec"); // sv8
+    binaries[BINARY_DEC] = QStandardPaths::findExecutable("mppdec"); // sv7
+    if (binaries[BINARY_DEC].isEmpty())
+        binaries[BINARY_DEC] = QStandardPaths::findExecutable("mpcdec"); // sv8
 
-    if (binaries["mppdec"].isEmpty()) {
+    if (binaries[BINARY_DEC].isEmpty()) {
         for (QList<QString>::const_iterator b = directoryList.begin(); b != directoryList.end(); ++b) {
             if (QFile::exists((*b) + "/mppdec")) {
-                binaries["mppdec"] = (*b) + "/mppdec";
+                binaries[BINARY_DEC] = (*b) + "/mppdec";
                 break;
             } else if (QFile::exists((*b) + "/mpcdec")) {
-                binaries["mppdec"] = (*b) + "/mpcdec";
+                binaries[BINARY_DEC] = (*b) + "/mpcdec";
                 break;
             }
         }
@@ -72,7 +75,7 @@ QList<ConversionPipeTrunk> soundkonverter_codec_musepack::codecTable()
     newTrunk.codecFrom = "wav";
     newTrunk.codecTo = "musepack";
     newTrunk.rating = 100;
-    newTrunk.enabled = (binaries["mppenc"] != "");
+    newTrunk.enabled = (binaries[BINARY_ENC] != "");
     newTrunk.problemInfo = standardMessage("encode_codec,backend", "musepack", "mppenc") + "\n"
         + standardMessage("install_website_backend,url", "mppenc", "http://www.musepack.net");
     newTrunk.data.hasInternalReplayGain = false;
@@ -81,7 +84,7 @@ QList<ConversionPipeTrunk> soundkonverter_codec_musepack::codecTable()
     newTrunk.codecFrom = "musepack";
     newTrunk.codecTo = "wav";
     newTrunk.rating = 100;
-    newTrunk.enabled = (binaries["mppdec"] != "");
+    newTrunk.enabled = (binaries[BINARY_DEC] != "");
     newTrunk.problemInfo = standardMessage("decode_codec,backend", "musepack", "mppdec") + "\n"
         + standardMessage("install_website_backend,url", "mppdec", "http://www.musepack.net");
     newTrunk.data.hasInternalReplayGain = false;
@@ -173,7 +176,7 @@ QStringList soundkonverter_codec_musepack::convertCommand(const QUrl &inputFile,
     }
 
     if (outputCodec == "musepack") {
-        command += binaries["mppenc"];
+        command += binaries[BINARY_ENC];
         if (musepackConversionOptions && musepackConversionOptions->data.preset != MusePackConversionOptions::Data::UserDefined) {
             if (musepackConversionOptions->data.preset == MusePackConversionOptions::Data::Telephone) {
                 command += "--telephone";
@@ -200,7 +203,7 @@ QStringList soundkonverter_codec_musepack::convertCommand(const QUrl &inputFile,
         command += "\"" + escapeUrl(inputFile) + "\"";
         command += "\"" + escapeUrl(outputFile) + "\"";
     } else {
-        command += binaries["mppdec"];
+        command += binaries[BINARY_DEC];
         command += "\"" + escapeUrl(inputFile) + "\"";
         command += "\"" + escapeUrl(outputFile) + "\"";
     }

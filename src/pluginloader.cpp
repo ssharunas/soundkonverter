@@ -115,6 +115,7 @@ void PluginLoader::load()
     for (const KPluginMetaData &codecsPlugin : codecsPlugins) {
         if (auto pluginResult = KPluginFactory::instantiatePlugin<CodecPlugin>(codecsPlugin, this, QVariantList())) {
             auto plugin = pluginResult.plugin;
+            logger->log(1000, "\tloading plugin: " + plugin->name());
             plugin->scanForBackends();
             QMap<QString, int> encodeCodecs;
             QMap<QString, int> decodeCodecs;

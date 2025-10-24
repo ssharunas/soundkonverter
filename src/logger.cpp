@@ -64,7 +64,7 @@ Logger::Logger(QObject *parent)
                     qWarning("Failed to create directory '%s' for log file '%s'.", qUtf8Printable(dir.absolutePath()), qUtf8Printable(item->file.fileName()));
                 }else{
                     qDebug("Created log directory '%s' for log file '%s'.", qUtf8Printable(dir.absolutePath()), qUtf8Printable(item->file.fileName()));
-                    item->file.open(QIODevice::WriteOnly);
+                    std::ignore = item->file.open(QIODevice::WriteOnly);
                 }
             }
 

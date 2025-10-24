@@ -170,7 +170,6 @@ void soundKonverter::setupActions()
     connect(save, &QAction::triggered, m_view, &soundKonverterView::saveFileList);
 
     actionCollection()->addAction("start", m_view->start());
-    actionCollection()->addAction("stop_menu", m_view->stopMenu());
 }
 
 void soundKonverter::showConfigDialog()

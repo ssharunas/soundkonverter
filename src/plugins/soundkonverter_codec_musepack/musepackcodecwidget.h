@@ -19,7 +19,7 @@ public:
     ~MusePackCodecWidget();
 
     ConversionOptions *currentConversionOptions();
-    bool setCurrentConversionOptions(const ConversionOptions *_options);
+    bool setCurrentConversionOptions(const ConversionOptions *options);
     void setCurrentFormat(const QString &format);
     QString currentProfile();
     bool setCurrentProfile(const QString &profile);
@@ -42,7 +42,7 @@ private:
 
 private slots:
     // presets
-    void presetChanged(const QString &preset);
+    void presetChanged(const int _preset);
     // user defined options
     void qualitySliderChanged(int quality);
     void qualitySpinBoxChanged(double quality);

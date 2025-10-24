@@ -1199,8 +1199,7 @@ bool TagEngine::writeCoversToDirectory(const QString &directoryName, TagData *ta
         }
 
         QFile file(directoryName + "/" + fileName + extension);
-        if (!file.exists()) {
-            file.open(QIODevice::WriteOnly);
+        if (!file.exists() && file.open(QIODevice::WriteOnly)) {
             file.write(cover->data.data(), cover->data.size());
             file.close();
         }

@@ -45,8 +45,9 @@ MusePackCodecWidget::MusePackCodecWidget()
     cPreset->addItem(i18n("User defined"));
     cPreset->setCurrentIndex(3);
     cPreset->setToolTip(i18n("Either use one of MusePacks's presets or your own settings."));
-    connect(cPreset, SIGNAL(activated(const QString &)), this, SLOT(presetChanged(const QString &)));
-    connect(cPreset, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+
+    connect(cPreset, &KComboBox::activated, this, &MusePackCodecWidget::presetChanged);
+    connect(cPreset, &KComboBox::activated, this, &MusePackCodecWidget::optionsChanged);
     presetBox->addWidget(cPreset);
 
     presetBox->addStretch();
@@ -106,7 +107,7 @@ MusePackCodecWidget::MusePackCodecWidget()
 
     grid->setRowStretch(3, 1);
 
-    presetChanged(cPreset->currentText());
+    presetChanged(cPreset->currentIndex());
 }
 
 MusePackCodecWidget::~MusePackCodecWidget()
@@ -144,7 +145,7 @@ bool MusePackCodecWidget::setCurrentConversionOptions(const ConversionOptions *_
 
     const MusePackConversionOptions *options = dynamic_cast<const MusePackConversionOptions *>(_options);
     cPreset->setCurrentIndex((int)options->data.preset);
-    presetChanged(cPreset->currentText());
+    presetChanged(cPreset->currentIndex());
     dQuality->setValue(options->quality);
     cCmdArguments->setChecked(!options->cmdArguments.isEmpty());
     if (!options->cmdArguments.isEmpty())
@@ -184,35 +185,35 @@ bool MusePackCodecWidget::setCurrentProfile(const QString &profile)
 {
     if (profile == i18n("Very low")) {
         cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentText());
+        presetChanged(cPreset->currentIndex());
         sQuality->setValue(300);
         dQuality->setValue(3.0);
         cCmdArguments->setChecked(false);
         return true;
     } else if (profile == i18n("Low")) {
         cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentText());
+        presetChanged(cPreset->currentIndex());
         sQuality->setValue(400);
         dQuality->setValue(4.0);
         cCmdArguments->setChecked(false);
         return true;
     } else if (profile == i18n("Medium")) {
         cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentText());
+        presetChanged(cPreset->currentIndex());
         sQuality->setValue(500);
         dQuality->setValue(5.0);
         cCmdArguments->setChecked(false);
         return true;
     } else if (profile == i18n("High")) {
         cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentText());
+        presetChanged(cPreset->currentIndex());
         sQuality->setValue(600);
         dQuality->setValue(6.0);
         cCmdArguments->setChecked(false);
         return true;
     } else if (profile == i18n("Very high")) {
         cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentText());
+        presetChanged(cPreset->currentIndex());
         sQuality->setValue(700);
         dQuality->setValue(7.0);
         cCmdArguments->setChecked(false);
@@ -238,29 +239,30 @@ int MusePackCodecWidget::currentDataRate()
     return dataRate;
 }
 
-void MusePackCodecWidget::presetChanged(const QString &preset)
+void MusePackCodecWidget::presetChanged(const int _preset)
 {
+    auto preset = (MusePackConversionOptions::Data::Preset)_preset;
     cPreset->setToolTip("");
 
-    if (preset == i18nc("Backend profile", "Telephone")) {
+    if (preset == MusePackConversionOptions::Data::Preset::Telephone) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("low quality (~60 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Thumb")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Thumb) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("low/medium quality (~90 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Radio")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Radio) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("medium quality (~130 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Standard")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Standard) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("high quality (~180 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Extreme")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Extreme) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("excellent quality (~210 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Insane")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Insane) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("excellent quality (~240 kbps abr)."));
-    } else if (preset == i18nc("Backend profile", "Braindead")) {
+    } else if (preset == MusePackConversionOptions::Data::Preset::Braindead) {
         userdefinedBox->setEnabled(false);
         cPreset->setToolTip(i18n("excellent quality (~270 kbps abr)."));
     } else // "User defined"

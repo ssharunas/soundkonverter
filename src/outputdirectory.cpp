@@ -269,7 +269,7 @@ QUrl OutputDirectory::calcPath(FileListItem *fileListItem, Config *config, const
         if (options->outputFilesystem == "ntfs" || options->outputFilesystem == "fuseblk")
             path = ntfsPath(path);
 
-        url = QUrl(path + "." + extension);
+        url = QUrl::fromLocalFile(path + "." + extension);
 
         if (config->data.general.conflictHandling == Config::Data::General::NewFileName)
             url = uniqueFileName(url, usedOutputNames);
