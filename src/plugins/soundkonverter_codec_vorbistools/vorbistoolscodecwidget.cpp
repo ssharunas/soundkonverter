@@ -35,21 +35,21 @@ VorbisToolsCodecWidget::VorbisToolsCodecWidget()
     cMode = new KComboBox(this);
     cMode->addItem(i18n("Quality"));
     cMode->addItem(i18n("Bitrate"));
-    connect(cMode, SIGNAL(activated(int)), this, SLOT(modeChanged(int)));
-    connect(cMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cMode, &KComboBox::activated, this, &VorbisToolsCodecWidget::modeChanged);
+    connect(cMode, &KComboBox::activated, this, &VorbisToolsCodecWidget::optionsChanged);
     topBox->addWidget(cMode);
 
     sQuality = new QSlider(Qt::Horizontal, this);
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &VorbisToolsCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &VorbisToolsCodecWidget::optionsChanged);
     topBox->addWidget(sQuality);
 
     dQuality = new QDoubleSpinBox(this);
     dQuality->setRange(48, 320);
     dQuality->setSuffix(" kbps");
     dQuality->setFixedWidth(dQuality->sizeHint().width());
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &VorbisToolsCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &VorbisToolsCodecWidget::optionsChanged);
     topBox->addWidget(dQuality);
 
     topBox->addSpacing(fontHeight);
@@ -61,7 +61,7 @@ VorbisToolsCodecWidget::VorbisToolsCodecWidget()
     cBitrateMode->addItem(i18n("Average"));
     cBitrateMode->addItem(i18n("Constant"));
     cBitrateMode->setFixedWidth(cBitrateMode->sizeHint().width());
-    connect(cBitrateMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cBitrateMode, &KComboBox::activated, this, &VorbisToolsCodecWidget::optionsChanged);
     topBox->addWidget(cBitrateMode);
 
     topBox->addStretch();

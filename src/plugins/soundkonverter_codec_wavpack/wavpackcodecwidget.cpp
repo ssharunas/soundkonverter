@@ -46,7 +46,7 @@ WavPackCodecWidget::WavPackCodecWidget()
     lCmdArguments = new KLineEdit(this);
     lCmdArguments->setEnabled(false);
     cmdArgumentsBox->addWidget(lCmdArguments);
-    connect(cCmdArguments, SIGNAL(toggled(bool)), lCmdArguments, SLOT(setEnabled(bool)));
+    connect(cCmdArguments, &QCheckBox::toggled, lCmdArguments, &KLineEdit::setEnabled);
 
     grid->setRowStretch(2, 1);
 

@@ -74,8 +74,8 @@ MusePackCodecWidget::MusePackCodecWidget()
     sQuality->setRange(0, 1000);
     sQuality->setSingleStep(100);
     sQuality->setValue(500);
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &MusePackCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &MusePackCodecWidget::optionsChanged);
     userdefinedTopBox->addWidget(sQuality);
     sQuality->setToolTip(
         i18n("Quality level from %1 to %2 where %2 is the highest quality.\nThe higher the quality, the bigger the file size and vice versa.", 0, 10));
@@ -85,8 +85,8 @@ MusePackCodecWidget::MusePackCodecWidget()
     dQuality->setSingleStep(1);
     dQuality->setValue(5);
     dQuality->setFixedWidth(dQuality->sizeHint().width());
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &MusePackCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &MusePackCodecWidget::optionsChanged);
     userdefinedTopBox->addWidget(dQuality);
     dQuality->setToolTip(
         i18n("Quality level from %1 to %2 where %2 is the highest quality.\nThe higher the quality, the bigger the file size and vice versa.", 0, 10));
@@ -103,7 +103,7 @@ MusePackCodecWidget::MusePackCodecWidget()
     lCmdArguments = new KLineEdit(this);
     lCmdArguments->setEnabled(false);
     cmdArgumentsBox->addWidget(lCmdArguments);
-    connect(cCmdArguments, SIGNAL(toggled(bool)), lCmdArguments, SLOT(setEnabled(bool)));
+    connect(cCmdArguments, &QCheckBox::toggled, lCmdArguments, &KLineEdit::setEnabled);
 
     grid->setRowStretch(3, 1);
 

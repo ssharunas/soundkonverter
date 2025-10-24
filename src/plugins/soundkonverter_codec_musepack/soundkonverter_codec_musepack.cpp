@@ -140,8 +140,8 @@ int soundkonverter_codec_musepack::convert(const QUrl &inputFile,
     newItem->id = lastId++;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+    connect(newItem->process, &KProcess::readyRead, this, &soundkonverter_codec_musepack::processOutput);
+    connect(newItem->process, &KProcess::finished, this, &soundkonverter_codec_musepack::processExit);
 
     newItem->process->clearProgram();
     newItem->process->setShellCommand(command.join(" "));

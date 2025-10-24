@@ -122,8 +122,8 @@ int soundkonverter_codec_neroaac::convert(const QUrl &inputFile,
     newItem->data.length = tags ? tags->length : 200;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+    connect(newItem->process, &QProcess::readyRead, this, &soundkonverter_codec_neroaac::processOutput);
+    connect(newItem->process, &QProcess::finished, this, &soundkonverter_codec_neroaac::processExit);
 
     newItem->process->clearProgram();
     newItem->process->setShellCommand(command.join(" "));

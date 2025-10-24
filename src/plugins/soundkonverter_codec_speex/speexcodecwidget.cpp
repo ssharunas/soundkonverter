@@ -33,21 +33,21 @@ SpeexCodecWidget::SpeexCodecWidget()
     cMode = new KComboBox(this);
     cMode->addItem(i18n("Quality"));
     cMode->addItem(i18n("Bitrate"));
-    connect(cMode, SIGNAL(activated(int)), this, SLOT(modeChanged(int)));
-    connect(cMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cMode, &KComboBox::activated, this, &SpeexCodecWidget::modeChanged);
+    connect(cMode, &KComboBox::activated, this, &SpeexCodecWidget::optionsChanged);
     topBox->addWidget(cMode);
 
     sQuality = new QSlider(Qt::Horizontal, this);
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &SpeexCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &SpeexCodecWidget::optionsChanged);
     topBox->addWidget(sQuality);
 
     dQuality = new QDoubleSpinBox(this);
     dQuality->setRange(8, 160);
     dQuality->setSuffix(" kbps");
     dQuality->setFixedWidth(dQuality->sizeHint().width());
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &SpeexCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &SpeexCodecWidget::optionsChanged);
     topBox->addWidget(dQuality);
 
     topBox->addStretch();

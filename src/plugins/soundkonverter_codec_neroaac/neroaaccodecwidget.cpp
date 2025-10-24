@@ -36,15 +36,15 @@ NeroaacCodecWidget::NeroaacCodecWidget()
     cMode = new KComboBox(this);
     cMode->addItem(i18n("Quality"));
     cMode->addItem(i18n("Bitrate"));
-    connect(cMode, SIGNAL(activated(int)), this, SLOT(modeChanged(int)));
-    connect(cMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cMode, &KComboBox::activated, this, &NeroaacCodecWidget::modeChanged);
+    connect(cMode, &KComboBox::activated, this, &NeroaacCodecWidget::optionsChanged);
     topBox->addWidget(cMode);
 
     sQuality = new QSlider(Qt::Horizontal, this);
     //     sQuality->setTickPosition( QSlider::TicksBelow );
     //     sQuality->setFixedWidth( sQuality->sizeHint().width() );
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &NeroaacCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &NeroaacCodecWidget::optionsChanged);
     topBox->addWidget(sQuality);
 
     dQuality = new QDoubleSpinBox(this);
@@ -52,8 +52,8 @@ NeroaacCodecWidget::NeroaacCodecWidget()
     dQuality->setSuffix(" kbps");
     dQuality->setFixedWidth(dQuality->sizeHint().width());
     //     dQuality->setFixedHeight( cMode->minimumSizeHint().height() );
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &NeroaacCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &NeroaacCodecWidget::optionsChanged);
     topBox->addWidget(dQuality);
 
     topBox->addSpacing(fontHeight);
@@ -65,7 +65,7 @@ NeroaacCodecWidget::NeroaacCodecWidget()
     cBitrateMode->addItem(i18n("Average"));
     cBitrateMode->addItem(i18n("Constant"));
     cBitrateMode->setFixedWidth(cBitrateMode->sizeHint().width());
-    connect(cBitrateMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cBitrateMode, &KComboBox::activated, this, &NeroaacCodecWidget::optionsChanged);
     topBox->addWidget(cBitrateMode);
 
     topBox->addStretch();

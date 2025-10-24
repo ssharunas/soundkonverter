@@ -35,8 +35,8 @@ OpusToolsCodecWidget::OpusToolsCodecWidget()
     sQuality->setRange(600, 51200);
     sQuality->setSingleStep(100);
     sQuality->setValue(16000);
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &OpusToolsCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &OpusToolsCodecWidget::optionsChanged);
     topBox->addWidget(sQuality);
 
     dQuality = new QDoubleSpinBox(this);
@@ -46,8 +46,8 @@ OpusToolsCodecWidget::OpusToolsCodecWidget()
     dQuality->setSuffix(" kbps");
     dQuality->setValue(160);
     dQuality->setFixedWidth(dQuality->sizeHint().width());
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &OpusToolsCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &OpusToolsCodecWidget::optionsChanged);
     topBox->addWidget(dQuality);
 
     topBox->addSpacing(fontHeight);
@@ -59,7 +59,7 @@ OpusToolsCodecWidget::OpusToolsCodecWidget()
     cBitrateMode->addItem(i18n("Constant"));
     cBitrateMode->setCurrentIndex(0);
     cBitrateMode->setFixedWidth(cBitrateMode->sizeHint().width());
-    connect(cBitrateMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cBitrateMode, &KComboBox::activated, this, &OpusToolsCodecWidget::optionsChanged);
     topBox->addWidget(cBitrateMode);
 
     topBox->addStretch();
