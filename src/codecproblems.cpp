@@ -2,10 +2,12 @@
 #include "codecproblems.h"
 
 #include <KLocalizedString>
+#include <QDialogButtonBox>
 #include <QIcon>
 #include <QLabel>
 #include <QLayout>
 #include <QLocale>
+#include <QPushButton>
 #include <QScrollArea>
 
 CodecProblems::CodecProblems(Mode mode, const QList<Problem> &problemList, QWidget *parent, Qt::WindowFlags f)
@@ -65,6 +67,11 @@ CodecProblems::CodecProblems(Mode mode, const QList<Problem> &problemList, QWidg
         solutionsScrollArea->setWidget(solutionsLabel);
         box->addWidget(solutionsScrollArea);
     }
+
+    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    connect(buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &CodecProblems::close);
+    box->addStretch();
+    box->addWidget(buttonBox);
 }
 
 CodecProblems::~CodecProblems()
