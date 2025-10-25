@@ -29,6 +29,7 @@ CodecOptimizations::CodecOptimizations(const QList<Optimization> &_optimizationL
     box->addWidget(frame);
 
     QGridLayout *grid = new QGridLayout(frame);
+    grid->setColumnStretch(0, 1);
     grid->setColumnStretch(1, 0);
     grid->setColumnStretch(2, 0);
 
@@ -70,7 +71,9 @@ CodecOptimizations::CodecOptimizations(const QList<Optimization> &_optimizationL
 
     auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &CodecOptimizations::okClicked);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &CodecOptimizations::rejected);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &CodecOptimizations::reject);
+    box->addStretch();
+    box->addWidget(buttonBox);
 }
 
 CodecOptimizations::~CodecOptimizations()
@@ -87,4 +90,5 @@ void CodecOptimizations::okClicked()
     }
 
     emit solutions(optimizationList);
+    accept();
 }
