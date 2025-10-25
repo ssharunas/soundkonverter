@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QLocale>
+#include <QMessageBox>
 #include <QSlider>
 #include <QSpinBox>
 #include <QWidget>
@@ -65,20 +66,6 @@ void soundkonverter_codec_twolame::showConfigDialog(ActionType action, const QSt
     Q_UNUSED(action)
     Q_UNUSED(codecName)
     Q_UNUSED(parent)
-
-    //     QDialog *dialog = new QDialog( parent );
-    //     dialog->setCaption( i18n("Configure %1",*global_plugin_name) );
-    //     dialog->setButtons( QDialog::Ok | QDialog::Cancel | QDialog::Apply );
-
-    //     QWidget *widget = new QWidget( dialog );
-
-    //     dialog->setMainWidget( widget );
-    //     connect( dialog, SIGNAL( applyClicked() ), widget, SLOT( save() ) );
-    //     connect( dialog, SIGNAL( okClicked() ), widget, SLOT( save() ) );
-    //     connect( widget, SIGNAL( changed( bool ) ), dialog, SLOT( enableButtonApply( bool ) ) );
-
-    //     dialog->enableButtonApply( false );
-    //     dialog->show();
 }
 
 bool soundkonverter_codec_twolame::hasInfo()
@@ -88,14 +75,7 @@ bool soundkonverter_codec_twolame::hasInfo()
 
 void soundkonverter_codec_twolame::showInfo(QWidget *parent)
 {
-    QDialog *dialog = new QDialog(parent);
-    dialog->setWindowTitle(i18n("About %1", *global_plugin_name));
-    //dialog->setButtons(QDialog::Ok);
-
-    QLabel *widget = new QLabel(dialog);
-
-    widget->setText(i18n("TwoLame is a free MP2 encoder.\nYou can get it at: http://www.twolame.org"));
-    dialog->show();
+    QMessageBox::information(parent, i18n("About %1", name()), i18n("TwoLame is a free MP2 encoder.\nYou can get it at: http://www.twolame.org"));
 }
 
 CodecWidget *soundkonverter_codec_twolame::newCodecWidget()

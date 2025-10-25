@@ -8,11 +8,12 @@
 
 #include <KConfigGroup>
 #include <KLocalizedString>
+#include <KPageDialog>
 #include <KSharedConfig>
 #include <QBoxLayout>
 #include <QCheckBox>
-#include <QDialog>
 #include <QDialogButtonBox>
+#include <QPushButton>
 
 soundkonverter_codec_opustools::soundkonverter_codec_opustools(QObject *parent, const KPluginMetaData &metadata, const QVariantList &args)
     : CodecPlugin(parent)
@@ -84,8 +85,9 @@ void soundkonverter_codec_opustools::showConfigDialog(ActionType action, const Q
     Q_UNUSED(codecName)
 
     if (!configDialog.data()) {
-        configDialog = new QDialog(parent);
-        configDialog.data()->setWindowTitle(i18n("Configure %1", *global_plugin_name));
+        configDialog = new KPageDialog(parent);
+        configDialog.data()->setWindowTitle(i18n("Configure %1", name()));
+        configDialog.data()->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
 
         QWidget *configDialogWidget = new QWidget(configDialog.data());
         QVBoxLayout *configDialogBox = new QVBoxLayout(configDialogWidget);
@@ -93,11 +95,11 @@ void soundkonverter_codec_opustools::showConfigDialog(ActionType action, const Q
         configDialogUncoupledChannelsCheckBox->setToolTip(i18n("Use one mono stream per channel"));
         configDialogBox->addWidget(configDialogUncoupledChannelsCheckBox);
 
-        QDialogButtonBox *buttonBox = new QDialogButtonBox(configDialogWidget);
-        buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::RestoreDefaults);
-        connect(configDialog.data(), SIGNAL(okClicked()), this, SLOT(configDialogSave()));
-        connect(configDialog.data(), SIGNAL(defaultClicked()), this, SLOT(configDialogDefault()));
+        configDialog.data()->addPage(configDialogWidget, "");
+        connect(configDialog.data(), &KPageDialog::accepted, this, &soundkonverter_codec_opustools::configDialogSave);
+        connect(configDialog.data()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &soundkonverter_codec_opustools::configDialogDefault);
     }
+
     configDialogUncoupledChannelsCheckBox->setChecked(uncoupledChannels);
     configDialog.data()->show();
 }

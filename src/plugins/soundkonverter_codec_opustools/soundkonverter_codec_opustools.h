@@ -8,7 +8,7 @@
 #include <QPointer>
 
 class ConversionOptions;
-class QDialog;
+class KPageDialog;
 class QCheckBox;
 
 class soundkonverter_codec_opustools : public CodecPlugin
@@ -50,7 +50,7 @@ public:
     ConversionOptions *conversionOptionsFromXml(QDomElement conversionOptions, QList<QDomElement> *filterOptionsElements = 0);
 
 private:
-    QPointer<QDialog> configDialog;
+    QPointer<KPageDialog> configDialog;
     QCheckBox *configDialogUncoupledChannelsCheckBox;
 
     int configVersion;

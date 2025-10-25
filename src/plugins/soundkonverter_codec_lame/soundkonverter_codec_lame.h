@@ -49,17 +49,13 @@ public:
     float parseOutput(const QString &output);
 
     ConversionOptions *conversionOptionsFromXml(QDomElement conversionOptions, QList<QDomElement> *filterOptionsElements = 0);
+    void setStereoMode(QString stereoMode);
 
 private:
     QPointer<KPageDialog> configDialog;
-    KComboBox *configDialogStereoModeComboBox;
 
     int configVersion;
     QString stereoMode;
-
-public Q_SLOTS:
-    void configDialogSave();
-    void configDialogDefault();
 };
 
 #endif // _SOUNDKONVERTER_CODEC_LAME_H_

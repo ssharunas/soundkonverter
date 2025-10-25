@@ -11,22 +11,70 @@
 #include <KPageDialog>
 #include <KSharedConfig>
 #include <QCheckBox>
-#include <QDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLayout>
 #include <QLocale>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QWidget>
 
+class ConfigDialog : public KPageDialog
+{
+public:
+    explicit ConfigDialog(soundkonverter_codec_lame *plugin, QWidget *parent)
+        : KPageDialog(parent)
+        , plugin(plugin)
+    {
+        setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
+        setWindowTitle(i18n("Configure %1", plugin->name()));
+
+        QWidget *configDialogWidget = new QWidget(this);
+        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
+        configDialogBox->addWidget(new QLabel(i18n("Stereo mode:")));
+
+        configDialogStereoModeComboBox = new KComboBox(configDialogWidget);
+        configDialogStereoModeComboBox->addItem(i18n("Automatic"), "automatic");
+        configDialogStereoModeComboBox->addItem(i18n("Joint Stereo"), "joint stereo");
+        configDialogStereoModeComboBox->addItem(i18n("Simple Stereo"), "simple stereo");
+        configDialogStereoModeComboBox->addItem(i18n("Forced Joint Stereo"), "forced joint stereo");
+        configDialogStereoModeComboBox->addItem(i18n("Dual Mono"), "dual mono");
+        configDialogBox->addWidget(configDialogStereoModeComboBox);
+
+        connect(this, &ConfigDialog::accepted, this, &ConfigDialog::save);
+        connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ConfigDialog::resetDefault);
+
+        this->addPage(configDialogWidget, "");
+    }
+
+    void setStereoMode(QString stereoMode)
+    {
+        configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData(stereoMode));
+    }
+
+private:
+    KComboBox *configDialogStereoModeComboBox;
+    soundkonverter_codec_lame *plugin;
+
+    void resetDefault()
+    {
+        configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData("automatic"));
+    }
+
+    void save()
+    {
+        QString stereoMode = configDialogStereoModeComboBox->itemData(configDialogStereoModeComboBox->currentIndex()).toString();
+        plugin->setStereoMode(stereoMode);
+        this->deleteLater();
+    }
+};
+
 soundkonverter_codec_lame::soundkonverter_codec_lame(QObject *parent, const KPluginMetaData &metadata, const QVariantList &args)
     : CodecPlugin(parent)
 {
     Q_UNUSED(args)
-
-    configDialogStereoModeComboBox = 0;
 
     binaries["lame"] = "";
 
@@ -107,65 +155,28 @@ bool soundkonverter_codec_lame::isConfigSupported(ActionType action, const QStri
     return true;
 }
 
-class ConfigDialog : public KPageDialog
-{
-public:
-    explicit ConfigDialog(soundkonverter_codec_lame *plugin, QWidget *parent)
-    {
-        setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
-        setWindowTitle(i18n("Configure %1", *global_plugin_name));
-
-        connect(this, &ConfigDialog::accepted, plugin, &soundkonverter_codec_lame::configDialogSave);
-        connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, plugin, &soundkonverter_codec_lame::configDialogDefault);
-    }
-};
-
 void soundkonverter_codec_lame::showConfigDialog(ActionType action, const QString &codecName, QWidget *parent)
 {
     Q_UNUSED(action)
     Q_UNUSED(codecName)
 
-    if (!configDialog.data()) {
+    if (!configDialog.data())
         configDialog = new ConfigDialog(this, parent);
 
-        QWidget *configDialogWidget = new QWidget(configDialog.data());
-        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
-        QLabel *configDialogStereoModeLabel = new QLabel(i18n("Stereo mode:"), configDialogWidget);
-        configDialogBox->addWidget(configDialogStereoModeLabel);
-        configDialogStereoModeComboBox = new KComboBox(configDialogWidget);
-        configDialogStereoModeComboBox->addItem(i18n("Automatic"), "automatic");
-        configDialogStereoModeComboBox->addItem(i18n("Joint Stereo"), "joint stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Simple Stereo"), "simple stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Forced Joint Stereo"), "forced joint stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Dual Mono"), "dual mono");
-        configDialogBox->addWidget(configDialogStereoModeComboBox);
+    if (auto dialog = dynamic_cast<ConfigDialog *>(configDialog.data()))
+        dialog->setStereoMode(stereoMode);
 
-        configDialog->addPage(configDialogWidget, "");
-    }
-    configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData(stereoMode));
     configDialog.data()->show();
 }
 
-void soundkonverter_codec_lame::configDialogSave()
+void soundkonverter_codec_lame::setStereoMode(QString stereoMode)
 {
-    if (configDialog.data()) {
-        stereoMode = configDialogStereoModeComboBox->itemData(configDialogStereoModeComboBox->currentIndex()).toString();
+    this->stereoMode = stereoMode;
+    KSharedConfig::Ptr conf = KSharedConfig::openConfig();
+    KConfigGroup group;
 
-        KSharedConfig::Ptr conf = KSharedConfig::openConfig();
-        KConfigGroup group;
-
-        group = conf->group("Plugin-" + name());
-        group.writeEntry("stereoMode", stereoMode);
-
-        configDialog.data()->deleteLater();
-    }
-}
-
-void soundkonverter_codec_lame::configDialogDefault()
-{
-    if (configDialog.data()) {
-        configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData("automatic"));
-    }
+    group = conf->group("Plugin-" + name());
+    group.writeEntry("stereoMode", stereoMode);
 }
 
 bool soundkonverter_codec_lame::hasInfo()
@@ -175,14 +186,9 @@ bool soundkonverter_codec_lame::hasInfo()
 
 void soundkonverter_codec_lame::showInfo(QWidget *parent)
 {
-    QDialog *dialog = new QDialog(parent);
-    dialog->setWindowTitle(i18n("About %1", *global_plugin_name));
-
-    auto layout = new QVBoxLayout(dialog);
-    auto widget = new QLabel(dialog);
-    widget->setText(i18n("LAME is a free high quality MP3 encoder.\nYou can get it at: http://lame.sourceforge.net"));
-    layout->addWidget(widget);
-    dialog->show();
+    QMessageBox::information(parent,
+                             i18n("About %1", name()),
+                             i18n("LAME is a free high quality MP3 encoder.\nYou can get it at: http://lame.sourceforge.net"));
 }
 
 CodecWidget *soundkonverter_codec_lame::newCodecWidget()

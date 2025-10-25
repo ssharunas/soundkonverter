@@ -9,9 +9,9 @@
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KMessageBox>
+#include <KPageDialog>
 #include <KSharedConfig>
 #include <QCheckBox>
-#include <QDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 
@@ -256,14 +256,17 @@ void soundkonverter_codec_ffmpeg::showConfigDialog(ActionType action, const QStr
     Q_UNUSED(codecName)
 
     if (!configDialog.data()) {
-        configDialog = new QDialog(parent);
-        configDialog.data()->setWindowTitle(i18n("Configure %1", *global_plugin_name));
+        configDialog = new KPageDialog(parent);
+        configDialog.data()->setWindowTitle(i18n("Configure %1", name()));
+        configDialog.data()->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialog.data());
-        configDialogExperimantalCodecsEnabledCheckBox = new QCheckBox(i18n("Enable experimental codecs"), configDialog.data());
+        QWidget *configDialogWidget = new QWidget(configDialog.data());
+        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
+        configDialogExperimantalCodecsEnabledCheckBox = new QCheckBox(i18n("Enable experimental codecs"), configDialogWidget);
         configDialogBox->addWidget(configDialogExperimantalCodecsEnabledCheckBox);
 
-        connect(configDialog.data(), &QDialog::finished, this, &soundkonverter_codec_ffmpeg::configDialogSave);
+        configDialog.data()->addPage(configDialogWidget, "");
+        connect(configDialog.data(), &QDialog::accepted, this, &soundkonverter_codec_ffmpeg::configDialogSave);
     }
     configDialogExperimantalCodecsEnabledCheckBox->setChecked(experimentalCodecsEnabled);
     configDialog.data()->show();

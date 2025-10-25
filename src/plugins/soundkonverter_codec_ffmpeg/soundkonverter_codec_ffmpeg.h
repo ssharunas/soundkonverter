@@ -9,7 +9,7 @@
 #include <QPointer>
 
 class ConversionOptions;
-class QDialog;
+class KPageDialog;
 class QCheckBox;
 
 class soundkonverter_codec_ffmpeg : public CodecPlugin
@@ -67,7 +67,7 @@ private:
     QPointer<KProcess> infoProcess;
     QString infoProcessOutputData;
 
-    QPointer<QDialog> configDialog;
+    QPointer<KPageDialog> configDialog;
     QCheckBox *configDialogExperimantalCodecsEnabledCheckBox;
 
     int configVersion;

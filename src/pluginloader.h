@@ -58,8 +58,17 @@ public:
 
     //     enum Possibilities { EncAble, DecAble, EncOrDecAble, ReplayGain }; // TODO make or'ed list
     //     enum CompressionType { Lossy, Lossless, Hybrid, LossyOrLossless, LossyOrLosslessOrHybrid }; // TODO make or'ed list
-    enum Possibilities { Encode = 1, Decode = 2, ReplayGain = 4 };
-    enum CompressionType { InferiorQuality = 1, Lossy = 2, Lossless = 4, Hybrid = 8 };
+    enum [[clang::flag_enum]] Possibilities {
+        Encode = 1,
+        Decode = 2,
+        ReplayGain = 4
+    };
+    enum [[clang::flag_enum]] CompressionType {
+        InferiorQuality = 1,
+        Lossy = 2,
+        Lossless = 4,
+        Hybrid = 8
+    };
 
     void load();
 

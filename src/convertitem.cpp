@@ -2,8 +2,8 @@
 #include "convertitem.h"
 #include "filelistitem.h"
 
+#include <QDir>
 #include <QFile>
-#include <QStandardPaths>
 
 ConvertItem::ConvertItem(FileListItem *item)
     : fileListItem(item)
@@ -41,8 +41,7 @@ QUrl ConvertItem::generateTempUrl(const QString &trunk, const QString &extension
         if (useSharedMemory) {
             tempUrl = "/dev/shm/" + QString("soundkonverter_temp_%1_%2_%3.%4").arg(trunk).arg(logID).arg(i).arg(extension);
         } else {
-            tempUrl =
-                QStandardPaths::locate(QStandardPaths::TempLocation, QString("soundkonverter_temp_%1_%2_%3.%4").arg(trunk).arg(logID).arg(i).arg(extension));
+            tempUrl = QDir::temp().absoluteFilePath(QString("soundkonverter_temp_%1_%2_%3.%4").arg(trunk).arg(logID).arg(i).arg(extension));
         }
         i++;
     } while (tempConvertUrls.contains(QUrl::fromLocalFile(tempUrl)) || QFile::exists(tempUrl));

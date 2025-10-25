@@ -84,7 +84,7 @@ void soundkonverter_codec_fluidsynth::showConfigDialog(ActionType action, const 
         const int fontHeight = QFontMetrics(QApplication::font()).boundingRect("M").size().height();
 
         configDialog = new KPageDialog(parent);
-        configDialog.data()->setWindowTitle(i18n("Configure %1", *global_plugin_name));
+        configDialog.data()->setWindowTitle(i18n("Configure %1", name()));
         configDialog.data()->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
         QWidget *configDialogWidget = new QWidget(configDialog.data());
@@ -110,6 +110,9 @@ void soundkonverter_codec_fluidsynth::configDialogSave()
 {
     if (configDialog.data()) {
         soundFontFile = configDialogSoundFontUrlRequester->url().toLocalFile();
+
+        if (soundFontFile.scheme().isEmpty())
+            soundFontFile.setScheme("file");
 
         KSharedConfig::Ptr conf = KSharedConfig::openConfig();
         KConfigGroup group;
