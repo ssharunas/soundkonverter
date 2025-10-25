@@ -41,7 +41,7 @@ find_package(Cdparanoia REQUIRED)
 find_package(Taglib ${TAGLIB_MIN_VERSION} REQUIRED)
 
 add_subdirectory(src)
-ki18n_install(po)
+add_subdirectory(src/po)
 
 # include directories
 include_directories(${CDPARANOIA_INCLUDE_DIR})
