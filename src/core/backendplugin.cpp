@@ -387,14 +387,8 @@ void BackendPlugin::scanForBackends(const QStringList &directoryList)
 {
     for (QMap<QString, QString>::Iterator a = binaries.begin(); a != binaries.end(); ++a) {
         a.value() = QStandardPaths::findExecutable(a.key());
-        if (a.value().isEmpty()) {
-            for (QList<QString>::const_iterator b = directoryList.begin(); b != directoryList.end(); ++b) {
-                if (QFile::exists((*b) + "/" + a.key())) {
-                    a.value() = (*b) + "/" + a.key();
-                    break;
-                }
-            }
-        }
+        if (a.value().isEmpty() && !directoryList.isEmpty())
+            a.value() = QStandardPaths::findExecutable(a.key(), directoryList);
     }
 }
 

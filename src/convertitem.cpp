@@ -45,9 +45,9 @@ QUrl ConvertItem::generateTempUrl(const QString &trunk, const QString &extension
                 QStandardPaths::locate(QStandardPaths::TempLocation, QString("soundkonverter_temp_%1_%2_%3.%4").arg(trunk).arg(logID).arg(i).arg(extension));
         }
         i++;
-    } while (tempConvertUrls.contains(QUrl(tempUrl)) || QFile::exists(tempUrl));
+    } while (tempConvertUrls.contains(QUrl::fromLocalFile(tempUrl)) || QFile::exists(tempUrl));
 
-    return QUrl(tempUrl);
+    return QUrl::fromLocalFile(tempUrl);
 }
 
 void ConvertItem::updateTimes()

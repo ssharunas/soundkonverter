@@ -90,7 +90,7 @@ void PlaylistOpener::fileDialogAccepted()
             if (!line.startsWith("#EXTM3U") && !line.startsWith("#EXTINF") && !line.isEmpty()) {
                 QUrl url(line);
                 if (url.isRelative())
-                    url = QUrl(playlistUrl.path() + "/" + line);
+                    url = QUrl::fromLocalFile(playlistUrl.path() + "/" + line);
                 url = url.adjusted(QUrl::NormalizePathSegments);
 
                 if (!url.isLocalFile() || QFile::exists(url.toLocalFile()))

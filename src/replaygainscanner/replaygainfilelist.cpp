@@ -910,7 +910,7 @@ void ReplayGainFileList::moveSelectedItems()
             newAlbumItem->albumName = i18n("New album");
             newAlbumItem->codecName = item->codecName;
             newAlbumItem->samplingRate = item->samplingRate;
-            newAlbumItem->url = QUrl(item->url.adjusted(QUrl::RemoveFilename).path());
+            newAlbumItem->url = QUrl::fromLocalFile(item->url.adjusted(QUrl::RemoveFilename).path());
             newAlbumItem->setExpanded(true);
             newAlbumItem->setFlags(newAlbumItem->flags() ^ Qt::ItemIsDragEnabled);
         }

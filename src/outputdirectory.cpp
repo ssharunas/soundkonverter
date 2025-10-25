@@ -152,7 +152,7 @@ QUrl OutputDirectory::calcPath(FileListItem *fileListItem, Config *config, const
         if (options->outputFilesystem == "ntfs" || options->outputFilesystem == "fuseblk")
             path = ntfsPath(path);
 
-        url = changeExtension(QUrl(path), extension);
+        url = changeExtension(QUrl::fromLocalFile(path), extension);
 
         if (config->data.general.conflictHandling == Config::Data::General::NewFileName)
             url = uniqueFileName(url, usedOutputNames);
@@ -291,7 +291,7 @@ QUrl OutputDirectory::calcPath(FileListItem *fileListItem, Config *config, const
         if (options->outputFilesystem == "ntfs" || options->outputFilesystem == "fuseblk")
             path = ntfsPath(path);
 
-        url = changeExtension(QUrl(path), extension);
+        url = changeExtension(QUrl::fromLocalFile(path), extension);
 
         if (config->data.general.conflictHandling == Config::Data::General::NewFileName)
             url = uniqueFileName(url, usedOutputNames);
@@ -304,7 +304,7 @@ QUrl OutputDirectory::calcPath(FileListItem *fileListItem, Config *config, const
         if (config->data.general.useVFATNames)
             path = vfatPath(path);
 
-        url = changeExtension(QUrl(path), extension);
+        url = changeExtension(QUrl::fromLocalFile(path), extension);
 
         if (config->data.general.conflictHandling == Config::Data::General::NewFileName)
             url = uniqueFileName(url, usedOutputNames);

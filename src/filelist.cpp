@@ -1279,7 +1279,7 @@ void FileList::load(const QString &fileListPath)
                 for (int i = 0; i < files.count(); i++) {
                     QDomElement file = files.at(i).toElement();
                     FileListItem *item = new FileListItem(this);
-                    item->url = QUrl(file.attribute("url"));
+                    item->url = QUrl::fromLocalFile(file.attribute("url"));
                     // item->outputUrl = QUrl(file.attribute("outputUrl"));
                     item->codecName = file.attribute("codecName");
                     item->conversionOptionsId = conversionOptionsIds[file.attribute("conversionOptionsId").toInt()]; // TODO check if id exists

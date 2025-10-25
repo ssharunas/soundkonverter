@@ -183,44 +183,34 @@ QString MusePackCodecWidget::currentProfile()
 
 bool MusePackCodecWidget::setCurrentProfile(const QString &profile)
 {
+    bool result = false;
+
     if (profile == i18n("Very low")) {
-        cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentIndex());
-        sQuality->setValue(300);
-        dQuality->setValue(3.0);
-        cCmdArguments->setChecked(false);
-        return true;
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::Thumb);
+        result = true;
     } else if (profile == i18n("Low")) {
-        cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentIndex());
-        sQuality->setValue(400);
-        dQuality->setValue(4.0);
-        cCmdArguments->setChecked(false);
-        return true;
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::Radio);
+        result = true;
     } else if (profile == i18n("Medium")) {
-        cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentIndex());
-        sQuality->setValue(500);
-        dQuality->setValue(5.0);
-        cCmdArguments->setChecked(false);
-        return true;
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::Standard);
+        result = true;
     } else if (profile == i18n("High")) {
-        cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentIndex());
-        sQuality->setValue(600);
-        dQuality->setValue(6.0);
-        cCmdArguments->setChecked(false);
-        return true;
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::Extreme);
+        result = true;
     } else if (profile == i18n("Very high")) {
-        cPreset->setCurrentIndex(7);
-        presetChanged(cPreset->currentIndex());
-        sQuality->setValue(700);
-        dQuality->setValue(7.0);
-        cCmdArguments->setChecked(false);
-        return true;
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::Insane);
+        result = true;
+    } else if (profile == i18n("User defined")) {
+        cPreset->setCurrentIndex(MusePackConversionOptions::Data::Preset::UserDefined);
+        result = true;
     }
 
-    return false;
+    if (result) {
+        presetChanged(cPreset->currentIndex());
+        cCmdArguments->setChecked(false);
+    }
+
+    return result;
 }
 
 int MusePackCodecWidget::currentDataRate()
