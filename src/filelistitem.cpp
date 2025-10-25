@@ -112,15 +112,15 @@ void FileListItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
     if (isConverting) {
         if (option.state & QStyle::State_Selected) {
-            backgroundColor = QColor(215, 102, 102); // hsv:   0, 134, 215
+            backgroundColor = QColor("palevioletred"); // hsv:   0, 134, 215
         } else {
-            backgroundColor = QColor(255, 234, 234); // hsv:   0,  21, 255
+            backgroundColor = QColor("indianred"); // hsv:   0,  21, 255
         }
     } else if (isFailed) {
         if (option.state & QStyle::State_Selected) {
-            backgroundColor = QColor(235, 154, 49); // hsv:  34, 202, 235
+            backgroundColor = QColor("lightsalmon"); // hsv:  34, 202, 235
         } else {
-            backgroundColor = QColor(255, 204, 156); // hsv:  29,  99, 255
+            backgroundColor = QColor("coral"); // hsv:  29,  99, 255
         }
     } else {
         if (option.state & QStyle::State_Selected) {
