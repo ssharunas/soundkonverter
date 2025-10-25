@@ -13,6 +13,7 @@
 #include <QLocale>
 #include <QPushButton>
 #include <QToolTip>
+#include <QWindow>
 
 AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
@@ -22,7 +23,7 @@ AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
     setWindowTitle(i18nc("@title:window", "About plugins"));
     setWindowIcon(QIcon::fromTheme("preferences-plugin"));
 
-    const int fontHeight = QFontMetrics(QApplication::font()).boundingRect("M").size().height();
+    const int fontWidth = QFontMetrics(QApplication::font()).boundingRect("M").size().width();
 
     QHBoxLayout *box = new QHBoxLayout(this);
 
@@ -36,41 +37,43 @@ AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
     pluginListBox->addWidget(pluginsList);
     connect(pluginsList, &QListWidget::currentTextChanged, this, &AboutPlugins::currentPluginChanged);
 
+    int maxNameLength = 0;
     QStringList pluginNames;
-    QList<CodecPlugin *> codecPlugins = config->pluginLoader()->getAllCodecPlugins();
-    for (int i = 0; i < codecPlugins.count(); i++) {
-        pluginNames += codecPlugins.at(i)->name();
+
+    foreach (CodecPlugin *plugin, config->pluginLoader()->getAllCodecPlugins()) {
+        pluginNames += plugin->name();
+        maxNameLength = qMax(maxNameLength, plugin->name().length());
     }
     pluginNames.sort();
     pluginsList->addItems(pluginNames);
 
     pluginNames.clear();
-    QList<FilterPlugin *> filterPlugins = config->pluginLoader()->getAllFilterPlugins();
-    for (int i = 0; i < filterPlugins.count(); i++) {
-        pluginNames += filterPlugins.at(i)->name();
+    foreach (FilterPlugin *plugin, config->pluginLoader()->getAllFilterPlugins()) {
+        pluginNames += plugin->name();
+        maxNameLength = qMax(maxNameLength, plugin->name().length());
     }
     pluginNames.sort();
     pluginsList->addItems(pluginNames);
 
     pluginNames.clear();
-    QList<ReplayGainPlugin *> replaygainPlugins = config->pluginLoader()->getAllReplayGainPlugins();
-    for (int i = 0; i < replaygainPlugins.count(); i++) {
-        pluginNames += replaygainPlugins.at(i)->name();
+    foreach (ReplayGainPlugin *plugin, config->pluginLoader()->getAllReplayGainPlugins()) {
+        pluginNames += plugin->name();
+        maxNameLength = qMax(maxNameLength, plugin->name().length());
     }
     pluginNames.sort();
     pluginsList->addItems(pluginNames);
 
     pluginNames.clear();
-    QList<RipperPlugin *> ripperPlugins = config->pluginLoader()->getAllRipperPlugins();
-    for (int i = 0; i < ripperPlugins.count(); i++) {
-        pluginNames += ripperPlugins.at(i)->name();
+    foreach (RipperPlugin *plugin, config->pluginLoader()->getAllRipperPlugins()) {
+        pluginNames += plugin->name();
+        maxNameLength = qMax(maxNameLength, plugin->name().length());
     }
     pluginNames.sort();
     pluginsList->addItems(pluginNames);
 
-    pluginsList->setFixedWidth(15 * fontHeight);
+    pluginsList->setFixedWidth(maxNameLength * fontWidth);
 
-    box->addSpacing(fontHeight);
+    box->addSpacing(fontWidth);
 
     QVBoxLayout *pluginInfoBox = new QVBoxLayout(this);
     box->addLayout(pluginInfoBox);
@@ -79,8 +82,9 @@ AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
     aboutPluginLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     aboutPluginLabel->setWordWrap(true);
     aboutPluginLabel->setTextFormat(Qt::RichText);
+    aboutPluginLabel->setMinimumWidth((i18n("About plugin %1:", QString()).length()) * fontWidth);
     pluginInfoBox->addWidget(aboutPluginLabel);
-     connect(aboutPluginLabel, &QLabel::linkActivated, this, &AboutPlugins::showProblemInfo);
+    connect(aboutPluginLabel, &QLabel::linkActivated, this, &AboutPlugins::showProblemInfo);
 
     pluginInfoBox->addStretch();
 
@@ -90,7 +94,7 @@ AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
     configurePlugin->hide();
     configurePluginBox->addWidget(configurePlugin);
     configurePluginBox->addStretch();
-     connect(configurePlugin, &QPushButton::clicked, this, &AboutPlugins::configurePluginClicked);
+    connect(configurePlugin, &QPushButton::clicked, this, &AboutPlugins::configurePluginClicked);
 
     pluginsList->setCurrentRow(0);
     QListWidgetItem *currentItem = pluginsList->currentItem();
@@ -98,8 +102,10 @@ AboutPlugins::AboutPlugins(Config *_config, QWidget *parent, Qt::WindowFlags f)
         currentPluginChanged(currentItem->text());
     }
 
+    create();
     KConfigGroup group(KSharedConfig::openStateConfig(), "AboutPlugins");
     KWindowConfig::restoreWindowSize(windowHandle(), group);
+    resize(windowHandle()->size());
 }
 
 AboutPlugins::~AboutPlugins()
@@ -218,7 +224,7 @@ void AboutPlugins::currentPluginChanged(const QString &pluginName)
     aboutPluginLabel->setText(info.join("<br><br>"));
 
     if (currentPlugin->isConfigSupported(BackendPlugin::General, "")) {
-        configurePlugin->setText(i18n("Configure %1 ...", currentPlugin->name()));
+        configurePlugin->setText(i18n("Configure %1", currentPlugin->name()));
         configurePlugin->show();
     } else {
         configurePlugin->hide();
