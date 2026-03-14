@@ -35,13 +35,13 @@ public:
         QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
         configDialogBox->addWidget(new QLabel(i18n("Stereo mode:")));
 
-        configDialogStereoModeComboBox = new KComboBox(configDialogWidget);
-        configDialogStereoModeComboBox->addItem(i18n("Automatic"), "automatic");
-        configDialogStereoModeComboBox->addItem(i18n("Joint Stereo"), "joint stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Simple Stereo"), "simple stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Forced Joint Stereo"), "forced joint stereo");
-        configDialogStereoModeComboBox->addItem(i18n("Dual Mono"), "dual mono");
-        configDialogBox->addWidget(configDialogStereoModeComboBox);
+        configDialogSamplingRateQualityComboBox = new KComboBox(configDialogWidget);
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Automatic"), "automatic");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Joint Stereo"), "joint stereo");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Simple Stereo"), "simple stereo");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Forced Joint Stereo"), "forced joint stereo");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Dual Mono"), "dual mono");
+        configDialogBox->addWidget(configDialogSamplingRateQualityComboBox);
 
         connect(this, &ConfigDialog::accepted, this, &ConfigDialog::save);
         connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ConfigDialog::resetDefault);
@@ -51,21 +51,21 @@ public:
 
     void setStereoMode(QString stereoMode)
     {
-        configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData(stereoMode));
+        configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData(stereoMode));
     }
 
 private:
-    KComboBox *configDialogStereoModeComboBox;
+    KComboBox *configDialogSamplingRateQualityComboBox;
     soundkonverter_codec_lame *plugin;
 
     void resetDefault()
     {
-        configDialogStereoModeComboBox->setCurrentIndex(configDialogStereoModeComboBox->findData("automatic"));
+        configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData("automatic"));
     }
 
     void save()
     {
-        QString stereoMode = configDialogStereoModeComboBox->itemData(configDialogStereoModeComboBox->currentIndex()).toString();
+        QString stereoMode = configDialogSamplingRateQualityComboBox->itemData(configDialogSamplingRateQualityComboBox->currentIndex()).toString();
         plugin->setStereoMode(stereoMode);
         this->deleteLater();
     }

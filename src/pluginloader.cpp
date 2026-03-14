@@ -168,7 +168,7 @@ void PluginLoader::load()
         }
     }
 
-    const QVector<KPluginMetaData> filterPluginsVect = KPluginMetaData::findPlugins("soundkonverterplugins/filter");
+    const QVector<KPluginMetaData> filterPluginsVect = KPluginMetaData::findPlugins("soundkonverterplugins/filters");
     for (const KPluginMetaData &filterPlugin : filterPluginsVect) {
         if (auto pluginResult = KPluginFactory::instantiatePlugin<FilterPlugin>(filterPlugin, this, QVariantList())) {
             auto plugin = pluginResult.plugin;
@@ -178,7 +178,7 @@ void PluginLoader::load()
             QList<ConversionPipeTrunk> codecTable = plugin->codecTable();
             for (int j = 0; j < codecTable.count(); j++) {
                 codecTable[j].plugin = plugin;
-                conversionPipeTrunks.append(codecTable.at(j));
+                filterPipeTrunks.append(codecTable.at(j));
                 if (codecTable.at(j).codecTo != "wav")
                     encodeCodecs[codecTable.at(j).codecTo] += codecTable.at(j).enabled;
                 if (codecTable.at(j).codecFrom != "wav")

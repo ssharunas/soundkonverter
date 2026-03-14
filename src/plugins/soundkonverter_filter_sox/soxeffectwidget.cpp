@@ -3,6 +3,7 @@
 
 #include "soxeffectwidget.h"
 
+#include <KLocalizedString>
 #include <QBoxLayout>
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -17,13 +18,13 @@ SoxEffectWidget::SoxEffectWidget(QWidget *parent)
     : QWidget(parent)
 {
     QHBoxLayout *box = new QHBoxLayout(this);
-    box->setMargin(0);
+    box->setSpacing(0);
 
     QLabel *lEffect = new QLabel(i18n("Effect:"));
     box->addWidget(lEffect);
 
     cEffect = new KComboBox(this);
-    connect(cEffect, SIGNAL(activated(int)), this, SLOT(effectChanged(int)));
+    connect(cEffect, &KComboBox::activated, this, &SoxEffectWidget::effectChanged);
     cEffect->addItem(i18n("Disabled"));
     //     cEffect->addItem( "allpass" );
     //     cEffect->addItem( "band" );
@@ -101,12 +102,12 @@ SoxEffectWidget::SoxEffectWidget(QWidget *parent)
     pRemove = new QPushButton(QIcon::fromTheme("list-remove"), i18n("Remove"), this);
     pRemove->setToolTip(i18n("Remove this effect"));
     box->addWidget(pRemove);
-    connect(pRemove, SIGNAL(clicked()), this, SLOT(removeClicked()));
+    connect(pRemove, &QPushButton::clicked, this, &SoxEffectWidget::removeClicked);
 
     pAdd = new QPushButton(QIcon::fromTheme("list-add"), i18n("Add"), this);
     pAdd->setToolTip(i18n("Add another effect"));
     box->addWidget(pAdd);
-    connect(pAdd, SIGNAL(clicked()), SIGNAL(addEffectWidgetClicked()));
+    connect(pAdd, &QPushButton::clicked, this, &SoxEffectWidget::addEffectWidgetClicked);
     pAdd->setEnabled(false);
 }
 
@@ -147,8 +148,8 @@ void SoxEffectWidget::effectChanged(int index)
         QDoubleSpinBox *dNormalizeVolume = new QDoubleSpinBox(this);
         dNormalizeVolume->setRange(-99, 99);
         dNormalizeVolume->setSuffix(" " + i18nc("decibel", "dB"));
-        connect(dNormalizeVolume, SIGNAL(valueChanged(double)), this, SLOT(normalizeVolumeChanged(double)));
-        connect(dNormalizeVolume, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+        connect(dNormalizeVolume, &QDoubleSpinBox::valueChanged, this, &SoxEffectWidget::normalizeVolumeChanged);
+        connect(dNormalizeVolume, &QDoubleSpinBox::valueChanged, this, &SoxEffectWidget::optionsChanged);
         widgetsBox->addWidget(dNormalizeVolume);
 
         dNormalizeVolume->setValue(0);
@@ -161,7 +162,7 @@ void SoxEffectWidget::effectChanged(int index)
         QDoubleSpinBox *dBassGain = new QDoubleSpinBox(this);
         dBassGain->setRange(-99, 99);
         dBassGain->setSuffix(" " + i18nc("decibel", "dB"));
-        connect(dBassGain, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+        connect(dBassGain, &QDoubleSpinBox::valueChanged, this, &SoxEffectWidget::optionsChanged);
         widgetsBox->addWidget(dBassGain);
 
         dBassGain->setValue(0);
@@ -173,7 +174,7 @@ void SoxEffectWidget::effectChanged(int index)
         QDoubleSpinBox *dTrebleGain = new QDoubleSpinBox(this);
         dTrebleGain->setRange(-99, 99);
         dTrebleGain->setSuffix(" " + i18nc("decibel", "dB"));
-        connect(dTrebleGain, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+        connect(dTrebleGain, &QDoubleSpinBox::valueChanged, this, &SoxEffectWidget::optionsChanged);
         widgetsBox->addWidget(dTrebleGain);
 
         dTrebleGain->setValue(0);

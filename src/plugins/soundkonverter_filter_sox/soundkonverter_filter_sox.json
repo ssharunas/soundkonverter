@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "hessijames@gmail.com",
+                "Name": "Daniel Faust"
+            }
+        ],
+        "License": "GPL",
+        "Name": "soundKonverter sox Plugin",
+        "ServiceTypes": [
+            "soundKonverter/FilterPlugin"
+        ],
+        "Version": "1.0"
+    }
+}

@@ -4,6 +4,10 @@
 #include "../../core/conversionoptions.h"
 #include "soxfilteroptions.h"
 
+#include <KLocalizedString>
+#include <QList>
+#include <QVariant>
+
 SoxFilterOptions::SoxFilterOptions()
 {
     pluginName = global_plugin_name;

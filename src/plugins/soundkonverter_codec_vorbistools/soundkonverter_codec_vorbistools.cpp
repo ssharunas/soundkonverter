@@ -174,10 +174,18 @@ float soundkonverter_codec_vorbistools::parseOutput(const QString &output)
     if (output == "" || !output.contains("%") || output.contains("error", Qt::CaseInsensitive))
         return -1;
 
-    QString data = output;
-    data.remove(0, data.indexOf("[") + 1);
-    data = data.left(data.indexOf("%"));
-    return data.toFloat();
+    int end = output.lastIndexOf("%");
+    if (end > 0) {
+        int start = output.lastIndexOf("[", end);
+
+        if (start > 0) {
+            start += 2;
+            QString data = output.mid(start, end - start).trimmed();
+            return QLocale::system().toFloat(data);
+        }
+    }
+
+    return 0;
 }
 
 K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_codec_vorbistoolsFactory,

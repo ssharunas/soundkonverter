@@ -3,6 +3,7 @@
 #define SOUNDKONVERTER_FILTER_NORMALIZE_H
 
 #include "../../core/filterplugin.h"
+#include <KPluginFactory>
 
 class FilterOptions;
 

@@ -71,17 +71,15 @@ void soundkonverter_filter_normalize::showInfo(QWidget *parent)
 FilterWidget *soundkonverter_filter_normalize::newFilterWidget()
 {
     NormalizeFilterWidget *widget = new NormalizeFilterWidget();
-    if (lastUsedFilterOptions) {
+    if (lastUsedFilterOptions)
         widget->setCurrentFilterOptions(lastUsedFilterOptions);
-    }
+
     return qobject_cast<FilterWidget *>(widget);
 }
 
 CodecWidget *soundkonverter_filter_normalize::newCodecWidget()
 {
-    //     CodecWidget *widget = new CodecWidget();
-    //     return qobject_cast<CodecWidget*>(widget);
-    return 0;
+    return nullptr;
 }
 
 int soundkonverter_filter_normalize::convert(const QUrl &inputFile,
@@ -100,8 +98,9 @@ int soundkonverter_filter_normalize::convert(const QUrl &inputFile,
     newItem->id = lastId++;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+
+    connect(newItem->process, &QIODevice::readyRead, this, &soundkonverter_filter_normalize::processOutput);
+    connect(newItem->process, &QProcess::finished, this, &soundkonverter_filter_normalize::processExit);
 
     newItem->process->clearProgram();
     newItem->process->setShellCommand(command.join(" "));
@@ -134,10 +133,10 @@ QStringList soundkonverter_filter_normalize::convertCommand(const QUrl &inputFil
 
     QStringList command;
 
-    foreach (const FilterOptions *_filterOptions, _conversionOptions->filterOptions) {
-        if (_filterOptions->pluginName == global_plugin_name) {
-            const NormalizeFilterOptions *filterOptions = dynamic_cast<const NormalizeFilterOptions *>(_filterOptions);
-            if (filterOptions->data.normalize) {
+    foreach (const FilterOptions *filterOptions, _conversionOptions->filterOptions) {
+        if (filterOptions->pluginName == global_plugin_name) {
+            const NormalizeFilterOptions *filterOption = dynamic_cast<const NormalizeFilterOptions *>(filterOptions);
+            if (filterOption->data.normalize) {
                 command += binaries["normalize"];
                 command += "\"" + escapeUrl(outputFile) + "\"";
 
@@ -154,15 +153,17 @@ float soundkonverter_filter_normalize::parseOutput(const QString &output)
 {
     Q_UNUSED(output);
 
-    //     // 01-Unknown.wav: 98% complete, ratio=0,479    // encode
-    //     // 01-Unknown.wav: 27% complete                 // decode
-    //
-    //     QRegularExpression regEnc("(\\d+)% complete");
-    //     if( output.contains(regEnc) )
-    //     {
-    //         return (float)regEnc.cap(1).toInt();
-    //     }
-    //
+    // Computing levels...
+    //  aaa.wav           100% done, ETA 00:00:00 (batch 100% done, ETA 00:00:00)
+    // Applying adjustment of -4,15dB to aaa.wav...
+    //  aaa.wav           100% done, ETA 00:00:00 (batch 100% done, ETA 00:00:00)
+
+    static QRegularExpression re("(\\d+)% done");
+    QRegularExpressionMatch match = re.matchView(output);
+
+    if (match.isValid())
+        return match.capturedView(1).toFloat();
+
     return -1;
 }
 
@@ -173,6 +174,6 @@ FilterOptions *soundkonverter_filter_normalize::filterOptionsFromXml(QDomElement
     return options;
 }
 
-K_PLUGIN_FACTORY(filter_normalize, registerPlugin<soundkonverter_filter_normalize>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_filter_normalizeFactory, "soundkonverter_filter_normalize.json", registerPlugin<soundkonverter_filter_normalize>();)
 
 #include "soundkonverter_filter_normalize.moc"

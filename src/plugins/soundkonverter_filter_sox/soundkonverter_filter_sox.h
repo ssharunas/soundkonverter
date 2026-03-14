@@ -4,11 +4,13 @@
 
 #include "../../core/filterplugin.h"
 
+#include <KPluginFactory>
 #include <QDateTime>
 #include <QPointer>
+#include <QSet>
 
 class FilterOptions;
-class QDialog;
+class KPageDialog;
 class KComboBox;
 
 class soundkonverter_filter_sox : public FilterPlugin
@@ -59,14 +61,14 @@ public:
     float parseOutput(const QString &output);
 
     FilterOptions *filterOptionsFromXml(QDomElement filterOptions);
+    void setSamplingRateQuality(QString samplingRateQuality);
 
 private:
     QList<SoxCodecData> codecList;
     QPointer<KProcess> infoProcess;
     QString infoProcessOutputData;
 
-    QPointer<QDialog> configDialog;
-    KComboBox *configDialogSamplingRateQualityComboBox;
+    QPointer<KPageDialog> configDialog;
 
     int configVersion;
     QString samplingRateQuality;
@@ -77,9 +79,6 @@ private:
     QString soxCodecName(const QString &codecName);
 
 private slots:
-    void configDialogSave();
-    void configDialogDefault();
-
     void infoProcessOutput();
     void infoProcessExit(int exitCode, QProcess::ExitStatus exitStatus);
 };

@@ -5,6 +5,7 @@
 #include "soxfilteroptions.h"
 #include "soxfilterwidget.h"
 
+#include <KLocalizedString>
 #include <QApplication>
 #include <QCheckBox>
 #include <QLabel>
@@ -20,7 +21,7 @@ SoxFilterWidget::SoxFilterWidget()
 
     int gridRow = 0;
     QGridLayout *grid = new QGridLayout(this);
-    grid->setMargin(0);
+    grid->setSpacing(0);
 
     // set up filter options selection
 
@@ -28,7 +29,7 @@ SoxFilterWidget::SoxFilterWidget()
     grid->addLayout(box1, gridRow++, 0);
 
     chSampleRate = new QCheckBox(i18n("Sample rate:"), this);
-    connect(chSampleRate, SIGNAL(toggled(bool)), SIGNAL(optionsChanged()));
+    connect(chSampleRate, &QCheckBox::toggled, this, &FilterWidget::optionsChanged);
     box1->addWidget(chSampleRate);
     cSampleRate = new KComboBox(this);
     cSampleRate->addItem("8000 Hz");
@@ -43,14 +44,14 @@ SoxFilterWidget::SoxFilterWidget()
     cSampleRate->setCurrentIndex(7);
     cSampleRate->setEditable(true);
     cSampleRate->setEnabled(false);
-    connect(cSampleRate, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cSampleRate, &KComboBox::activated, this, &FilterWidget::optionsChanged);
     box1->addWidget(cSampleRate);
-    connect(chSampleRate, SIGNAL(toggled(bool)), cSampleRate, SLOT(setEnabled(bool)));
+    connect(chSampleRate, &QCheckBox::toggled, cSampleRate, &KComboBox::setEnabled);
 
     box1->addSpacing(fontHeight);
 
     chSampleSize = new QCheckBox(i18n("Sample size:"), this);
-    connect(chSampleSize, SIGNAL(toggled(bool)), SIGNAL(optionsChanged()));
+    connect(chSampleSize, &QCheckBox::toggled, this, &FilterWidget::optionsChanged);
     box1->addWidget(chSampleSize);
     cSampleSize = new KComboBox(this);
     cSampleSize->addItem("8 bit");
@@ -61,19 +62,19 @@ SoxFilterWidget::SoxFilterWidget()
     cSampleSize->setEditable(true);
     cSampleSize->setEnabled(false);
     box1->addWidget(cSampleSize);
-    connect(chSampleSize, SIGNAL(toggled(bool)), cSampleSize, SLOT(setEnabled(bool)));
+    connect(chSampleSize, &QCheckBox::toggled, cSampleSize, &KComboBox::setEnabled);
 
     box1->addSpacing(fontHeight);
 
     chChannels = new QCheckBox(i18n("Channels:"), this);
-    connect(chChannels, SIGNAL(toggled(bool)), SIGNAL(optionsChanged()));
+    connect(chChannels, &QCheckBox::toggled, this, &FilterWidget::optionsChanged);
     box1->addWidget(chChannels);
     cChannels = new KComboBox(this);
     cChannels->addItem(i18n("Mono"));
     cChannels->addItem(i18n("Stereo"));
     cChannels->setEnabled(false);
     box1->addWidget(cChannels);
-    connect(chChannels, SIGNAL(toggled(bool)), cChannels, SLOT(setEnabled(bool)));
+    connect(chChannels, &QCheckBox::toggled, cChannels, &KComboBox::setEnabled);
 
     box1->addStretch();
 
@@ -83,8 +84,8 @@ SoxFilterWidget::SoxFilterWidget()
     SoxEffectWidget *effectWidget = new SoxEffectWidget(this);
     effectWidget->setAddButtonShown(true);
     effectWidget->setRemoveButtonShown(false);
-    connect(effectWidget, SIGNAL(addEffectWidgetClicked()), this, SLOT(addEffectWidgetClicked()));
-    connect(effectWidget, SIGNAL(removeEffectWidgetClicked(SoxEffectWidget *)), this, SLOT(removeEffectWidgetClicked(SoxEffectWidget *)));
+    connect(effectWidget, &SoxEffectWidget::addEffectWidgetClicked, this, &SoxFilterWidget::addEffectWidgetClicked);
+    connect(effectWidget, &SoxEffectWidget::removeEffectWidgetClicked, this, &SoxFilterWidget::removeEffectWidgetClicked);
     effectWidgetsBox->addWidget(effectWidget);
     effectWidgets.append(effectWidget);
 }
@@ -131,6 +132,7 @@ FilterOptions *SoxFilterWidget::currentFilterOptions()
     if (valid) {
         return options;
     } else {
+        delete options;
         return 0;
     }
 }
@@ -201,8 +203,8 @@ void SoxFilterWidget::addEffectWidgetClicked()
     SoxEffectWidget *effectWidget = new SoxEffectWidget(this);
     effectWidget->setAddButtonShown(true);
     effectWidget->setRemoveButtonShown(true);
-    connect(effectWidget, SIGNAL(addEffectWidgetClicked()), this, SLOT(addEffectWidgetClicked()));
-    connect(effectWidget, SIGNAL(removeEffectWidgetClicked(SoxEffectWidget *)), this, SLOT(removeEffectWidgetClicked(SoxEffectWidget *)));
+    connect(effectWidget, &SoxEffectWidget::addEffectWidgetClicked, this, &SoxFilterWidget::addEffectWidgetClicked);
+    connect(effectWidget, &SoxEffectWidget::removeEffectWidgetClicked, this, &SoxFilterWidget::removeEffectWidgetClicked);
     effectWidgetsBox->addWidget(effectWidget);
     effectWidgets.append(effectWidget);
 }

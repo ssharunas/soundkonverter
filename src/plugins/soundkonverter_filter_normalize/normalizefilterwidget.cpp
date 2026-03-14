@@ -4,6 +4,7 @@
 #include "normalizefilteroptions.h"
 #include "normalizefilterwidget.h"
 
+#include <KLocalizedString>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLayout>
@@ -21,7 +22,7 @@ NormalizeFilterWidget::NormalizeFilterWidget()
     grid->addLayout(topBox, 0, 0);
 
     cNormalize = new QCheckBox(i18n("Normalize"), this);
-    connect(cNormalize, SIGNAL(toggled(bool)), SIGNAL(optionsChanged()));
+    connect(cNormalize, &QCheckBox::toggled, this, &NormalizeFilterWidget::optionsChanged);
     topBox->addWidget(cNormalize);
 
     topBox->addStretch();
@@ -41,16 +42,15 @@ FilterOptions *NormalizeFilterWidget::currentFilterOptions()
         NormalizeFilterOptions *options = new NormalizeFilterOptions();
         options->data.normalize = cNormalize->isChecked();
         return options;
-    } else {
-        return 0;
     }
+
+    return nullptr;
 }
 
 bool NormalizeFilterWidget::setCurrentFilterOptions(const FilterOptions *_options)
 {
     if (!_options) {
         cNormalize->setChecked(false);
-
         return true;
     }
 

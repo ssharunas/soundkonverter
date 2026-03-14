@@ -8,6 +8,7 @@
 
 #include <KComboBox>
 #include <KLineEdit>
+#include <KLocalizedString>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
@@ -39,16 +40,16 @@ SoxCodecWidget::SoxCodecWidget()
     sCompressionLevel->setRange(0, 8);
     sCompressionLevel->setSingleStep(1);
     sCompressionLevel->setPageStep(1);
-    connect(sCompressionLevel, SIGNAL(valueChanged(int)), this, SLOT(compressionLevelSliderChanged(int)));
-    connect(sCompressionLevel, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sCompressionLevel, &QSlider::valueChanged, this, &SoxCodecWidget::compressionLevelSliderChanged);
+    connect(sCompressionLevel, &QSlider::valueChanged, this, &CodecWidget::optionsChanged);
     topBox->addWidget(sCompressionLevel);
 
     iCompressionLevel = new QSpinBox(this);
     iCompressionLevel->setRange(0, 8);
     iCompressionLevel->setSingleStep(1);
     iCompressionLevel->setFixedWidth(iCompressionLevel->sizeHint().width());
-    connect(iCompressionLevel, SIGNAL(valueChanged(int)), this, SLOT(compressionLevelSpinBoxChanged(int)));
-    connect(iCompressionLevel, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(iCompressionLevel, &QSpinBox::valueChanged, this, &SoxCodecWidget::compressionLevelSpinBoxChanged);
+    connect(iCompressionLevel, &QSpinBox::valueChanged, this, &CodecWidget::optionsChanged);
     topBox->addWidget(iCompressionLevel);
 
     iCompressionLevel->setValue(5);
@@ -60,24 +61,24 @@ SoxCodecWidget::SoxCodecWidget()
     cMode = new KComboBox(this);
     cMode->addItem(i18n("Quality"));
     cMode->addItem(i18n("Bitrate"));
-    connect(cMode, SIGNAL(activated(int)), this, SLOT(modeChanged(int)));
-    connect(cMode, SIGNAL(activated(int)), SIGNAL(optionsChanged()));
+    connect(cMode, &KComboBox::activated, this, &SoxCodecWidget::modeChanged);
+    connect(cMode, &KComboBox::activated, this, &CodecWidget::optionsChanged);
     topBox->addWidget(cMode);
 
     lQuality = new QLabel(i18n("Quality:"), this);
     topBox->addWidget(lQuality);
 
     sQuality = new QSlider(Qt::Horizontal, this);
-    connect(sQuality, SIGNAL(valueChanged(int)), this, SLOT(qualitySliderChanged(int)));
-    connect(sQuality, SIGNAL(valueChanged(int)), SIGNAL(optionsChanged()));
+    connect(sQuality, &QSlider::valueChanged, this, &SoxCodecWidget::qualitySliderChanged);
+    connect(sQuality, &QSlider::valueChanged, this, &CodecWidget::optionsChanged);
     topBox->addWidget(sQuality);
 
     dQuality = new QDoubleSpinBox(this);
     dQuality->setRange(8, 320);
     dQuality->setSuffix(" kbps");
     dQuality->setFixedWidth(dQuality->sizeHint().width());
-    connect(dQuality, SIGNAL(valueChanged(double)), this, SLOT(qualitySpinBoxChanged(double)));
-    connect(dQuality, SIGNAL(valueChanged(double)), SIGNAL(optionsChanged()));
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &SoxCodecWidget::qualitySpinBoxChanged);
+    connect(dQuality, &QDoubleSpinBox::valueChanged, this, &CodecWidget::optionsChanged);
     topBox->addWidget(dQuality);
 
     // amr nb and amr wb
@@ -100,7 +101,7 @@ SoxCodecWidget::SoxCodecWidget()
     lCmdArguments = new KLineEdit(this);
     lCmdArguments->setEnabled(false);
     cmdArgumentsBox->addWidget(lCmdArguments);
-    connect(cCmdArguments, SIGNAL(toggled(bool)), lCmdArguments, SLOT(setEnabled(bool)));
+    connect(cCmdArguments, &QCheckBox::toggled, lCmdArguments, &KLineEdit::setEnabled);
 
     grid->setRowStretch(2, 1);
 

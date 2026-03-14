@@ -169,7 +169,7 @@ void OptionsDetailed::resetFilterOptions()
     for (int i = 0; i < wFilter.size(); i++) {
         FilterWidget *widget = wFilter.keys().at(i);
         if (widget) {
-            widget->setCurrentFilterOptions(0);
+            widget->setCurrentFilterOptions(nullptr);
         }
     }
 }

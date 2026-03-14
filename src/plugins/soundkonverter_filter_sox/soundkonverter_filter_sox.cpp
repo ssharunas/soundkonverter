@@ -8,18 +8,73 @@
 #include "soxfilterwidget.h"
 
 #include <KComboBox>
+#include <KConfigGroup>
+#include <KLocalizedString>
 #include <KMessageBox>
+#include <KPageDialog>
+#include <KSharedConfig>
 #include <QDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
+#include <QRegularExpression>
+#include <QSet>
+
+class ConfigDialog : public KPageDialog
+{
+public:
+    explicit ConfigDialog(soundkonverter_filter_sox *plugin, QWidget *parent)
+        : KPageDialog(parent)
+        , plugin(plugin)
+    {
+        setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
+        setWindowTitle(i18n("Configure %1", plugin->name()));
+
+        QWidget *configDialogWidget = new QWidget(this);
+        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
+        configDialogBox->addWidget(new QLabel(i18n("Sample rate change quality:")));
+
+        configDialogSamplingRateQualityComboBox = new KComboBox(configDialogWidget);
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Quick"), "quick");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Low"), "low");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Medium"), "medium");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("High"), "high");
+        configDialogSamplingRateQualityComboBox->addItem(i18n("Very high"), "very high");
+        configDialogBox->addWidget(configDialogSamplingRateQualityComboBox);
+
+        connect(this, &ConfigDialog::accepted, this, &ConfigDialog::save);
+        connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ConfigDialog::resetDefault);
+
+        this->addPage(configDialogWidget, "");
+    }
+
+    void setSamplingRateQuality(QString samplingRateQuality)
+    {
+        configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData(samplingRateQuality));
+    }
+
+private:
+    KComboBox *configDialogSamplingRateQualityComboBox;
+    soundkonverter_filter_sox *plugin;
+
+    void resetDefault()
+    {
+        configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData("high"));
+    }
+
+    void save()
+    {
+        QString samplingRateQuality = configDialogSamplingRateQualityComboBox->itemData(configDialogSamplingRateQualityComboBox->currentIndex()).toString();
+        plugin->setSamplingRateQuality(samplingRateQuality);
+        this->deleteLater();
+    }
+};
 
 soundkonverter_filter_sox::soundkonverter_filter_sox(QObject *parent, const QVariantList &args)
     : FilterPlugin(parent)
 {
     Q_UNUSED(args)
-
-    configDialogSamplingRateQualityComboBox = 0;
 
     binaries["sox"] = "";
 
@@ -31,7 +86,9 @@ soundkonverter_filter_sox::soundkonverter_filter_sox(QObject *parent, const QVar
     samplingRateQuality = group.readEntry("samplingRateQuality", "high");
     experimentalEffectsEnabled = group.readEntry("experimentalEffectsEnabled", false);
     soxLastModified = group.readEntry("soxLastModified", QDateTime());
-    soxCodecList = group.readEntry("codecList", QStringList()).toSet();
+
+    QStringList tmp = group.readEntry("codecList", QStringList());
+    soxCodecList = QSet(tmp.constBegin(), tmp.constEnd());
 
     SoxCodecData data;
 
@@ -139,8 +196,8 @@ QList<ConversionPipeTrunk> soundkonverter_filter_sox::codecTable()
         if (soxInfo.lastModified() > soxLastModified || configVersion < version()) {
             infoProcess = new KProcess();
             infoProcess.data()->setOutputChannelMode(KProcess::MergedChannels);
-            connect(infoProcess.data(), SIGNAL(readyRead()), this, SLOT(infoProcessOutput()));
-            connect(infoProcess.data(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(infoProcessExit(int, QProcess::ExitStatus)));
+            connect(infoProcess.data(), &KProcess::readyRead, this, &soundkonverter_filter_sox::infoProcessOutput);
+            connect(infoProcess.data(), &KProcess::finished, this, &soundkonverter_filter_sox::infoProcessExit);
 
             QStringList command;
             command += binaries["sox"];
@@ -219,51 +276,23 @@ void soundkonverter_filter_sox::showConfigDialog(ActionType action, const QStrin
     Q_UNUSED(action)
     Q_UNUSED(codecName)
 
-    if (!configDialog.data()) {
-        configDialog = new QDialog(parent);
-        configDialog.data()->setCaption(i18n("Configure %1", *global_plugin_name));
-        configDialog.data()->setButtons(QDialog::Ok | QDialog::Cancel | QDialog::Default);
+    if (!configDialog.data())
+        configDialog = new ConfigDialog(this, parent);
 
-        QWidget *configDialogWidget = new QWidget(configDialog.data());
-        QHBoxLayout *configDialogBox = new QHBoxLayout(configDialogWidget);
-        QLabel *configDialogSamplingRateQualityLabel = new QLabel(i18n("Sample rate change quality:"), configDialogWidget);
-        configDialogBox->addWidget(configDialogSamplingRateQualityLabel);
-        configDialogSamplingRateQualityComboBox = new KComboBox(configDialogWidget);
-        configDialogSamplingRateQualityComboBox->addItem(i18n("Quick"), "quick");
-        configDialogSamplingRateQualityComboBox->addItem(i18n("Low"), "low");
-        configDialogSamplingRateQualityComboBox->addItem(i18n("Medium"), "medium");
-        configDialogSamplingRateQualityComboBox->addItem(i18n("High"), "high");
-        configDialogSamplingRateQualityComboBox->addItem(i18n("Very high"), "very high");
-        configDialogBox->addWidget(configDialogSamplingRateQualityComboBox);
+    if (auto dialog = dynamic_cast<ConfigDialog *>(configDialog.data()))
+        dialog->setSamplingRateQuality(samplingRateQuality);
 
-        configDialog.data()->setMainWidget(configDialogWidget);
-        connect(configDialog.data(), SIGNAL(okClicked()), this, SLOT(configDialogSave()));
-        connect(configDialog.data(), SIGNAL(defaultClicked()), this, SLOT(configDialogDefault()));
-    }
-    configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData(samplingRateQuality));
     configDialog.data()->show();
 }
 
-void soundkonverter_filter_sox::configDialogSave()
+void soundkonverter_filter_sox::setSamplingRateQuality(QString samplingRateQuality)
 {
-    if (configDialog.data()) {
-        samplingRateQuality = configDialogSamplingRateQualityComboBox->itemData(configDialogSamplingRateQualityComboBox->currentIndex()).toString();
+    this->samplingRateQuality = samplingRateQuality;
+    KSharedConfig::Ptr conf = KSharedConfig::openConfig();
+    KConfigGroup group;
 
-        KSharedConfig::Ptr conf = KSharedConfig::openConfig();
-        KConfigGroup group;
-
-        group = conf->group("Plugin-" + name());
-        group.writeEntry("samplingRateQuality", samplingRateQuality);
-
-        configDialog.data()->deleteLater();
-    }
-}
-
-void soundkonverter_filter_sox::configDialogDefault()
-{
-    if (configDialog.data()) {
-        configDialogSamplingRateQualityComboBox->setCurrentIndex(configDialogSamplingRateQualityComboBox->findData("high"));
-    }
+    group = conf->group("Plugin-" + name());
+    group.writeEntry("samplingRateQuality", samplingRateQuality);
 }
 
 bool soundkonverter_filter_sox::hasInfo()
@@ -307,8 +336,8 @@ int soundkonverter_filter_sox::convert(const QUrl &inputFile,
     newItem->id = lastId++;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+    connect(newItem->process, &QProcess::readyRead, this, &soundkonverter_filter_sox::processOutput);
+    connect(newItem->process, &QProcess::finished, this, &soundkonverter_filter_sox::processExit);
 
     newItem->process->clearProgram();
     newItem->process->setShellCommand(command.join(" "));
@@ -324,28 +353,27 @@ QStringList soundkonverter_filter_sox::convertCommand(const QUrl &inputFile,
                                                       const QUrl &outputFile,
                                                       const QString &inputCodec,
                                                       const QString &outputCodec,
-                                                      const ConversionOptions *_conversionOptions,
+                                                      const ConversionOptions *conversionOptions,
                                                       TagData *tags,
                                                       bool replayGain)
 {
     Q_UNUSED(tags);
     Q_UNUSED(replayGain);
 
-    if (!_conversionOptions)
+    if (!conversionOptions)
         return QStringList();
-
-    const ConversionOptions *conversionOptions = _conversionOptions;
 
     QStringList command;
 
-    const SoxFilterOptions *filterOptions = 0;
-    foreach (const FilterOptions *_filterOptions, conversionOptions->filterOptions) {
-        if (_filterOptions->pluginName == global_plugin_name)
-            filterOptions = dynamic_cast<const SoxFilterOptions *>(_filterOptions);
+    const SoxFilterOptions *filterOption = 0;
+    foreach (const FilterOptions *filterOptions, conversionOptions->filterOptions) {
+        if (filterOptions->pluginName == global_plugin_name)
+            filterOption = dynamic_cast<const SoxFilterOptions *>(filterOptions);
     }
 
     command += binaries["sox"];
     command += "--no-glob";
+    command += "--show-progress";
     if (conversionOptions->pluginName == name()) {
         command += conversionOptions->cmdArguments;
     }
@@ -355,13 +383,13 @@ QStringList soundkonverter_filter_sox::convertCommand(const QUrl &inputFile,
         command += soxCodecName(inputCodec);
     }
     command += "\"" + escapeUrl(inputFile) + "\"";
-    if (filterOptions && filterOptions->data.sampleSize) {
+    if (filterOption && filterOption->data.sampleSize) {
         command += "--bits";
-        command += QString::number(filterOptions->data.sampleSize);
+        command += QString::number(filterOption->data.sampleSize);
     }
-    if (filterOptions && filterOptions->data.channels) {
+    if (filterOption && filterOption->data.channels) {
         command += "--channels";
-        command += QString::number(filterOptions->data.channels);
+        command += QString::number(filterOption->data.channels);
     }
     if (outputCodec == "flac" && (conversionOptions->pluginName == global_plugin_name || conversionOptions->pluginName == "FLAC")) {
         command += "--compression";
@@ -397,7 +425,7 @@ QStringList soundkonverter_filter_sox::convertCommand(const QUrl &inputFile,
         command += soxCodecName(outputCodec);
     }
     command += "\"" + escapeUrl(outputFile) + "\"";
-    if (filterOptions && filterOptions->data.sampleRate) {
+    if (filterOption && filterOption->data.sampleRate) {
         command += "rate";
         if (samplingRateQuality == "quick")
             command += "-q";
@@ -409,10 +437,10 @@ QStringList soundkonverter_filter_sox::convertCommand(const QUrl &inputFile,
             command += "-h";
         else if (samplingRateQuality == "very high")
             command += "-v";
-        command += QString::number(filterOptions->data.sampleRate);
+        command += QString::number(filterOption->data.sampleRate);
     }
-    if (filterOptions) {
-        foreach (const SoxFilterOptions::EffectData &effectData, filterOptions->data.effects) {
+    if (filterOption) {
+        foreach (const SoxFilterOptions::EffectData &effectData, filterOption->data.effects) {
             if (effectData.effectName == "norm" || effectData.effectName == "bass" || effectData.effectName == "treble") {
                 command += effectData.effectName;
                 command += QString::number(effectData.data.at(0).toDouble());
@@ -427,15 +455,14 @@ float soundkonverter_filter_sox::parseOutput(const QString &output)
 {
     Q_UNUSED(output);
 
-    //     // 01-Unknown.wav: 98% complete, ratio=0,479    // encode
-    //     // 01-Unknown.wav: 27% complete                 // decode
-    //
-    //     QRegularExpression regEnc("(\\d+)% complete");
-    //     if( output.contains(regEnc) )
-    //     {
-    //         return (float)regEnc.cap(1).toInt();
-    //     }
-    //
+    //     In:58.5% 00:03:31.30 [00:02:29.98] Out:9.31M [!=====|=====!] Hd:0.0 Clip:0
+
+    static QRegularExpression rx("(\\d+\\.\\d+)%");
+    QRegularExpressionMatch match = rx.matchView(output);
+    if (match.isValid()) {
+        return match.capturedView(1).toFloat();
+    }
+
     return -1;
 }
 
@@ -458,7 +485,7 @@ QString soundkonverter_filter_sox::soxCodecName(const QString &codecName)
 
 void soundkonverter_filter_sox::infoProcessOutput()
 {
-    infoProcessOutputData.append(infoProcess.data()->readAllStandardOutput().data());
+    infoProcessOutputData.append(infoProcess.data()->readAllStandardOutput().constData());
 }
 
 void soundkonverter_filter_sox::infoProcessExit(int exitCode, QProcess::ExitStatus exitStatus)
@@ -466,9 +493,10 @@ void soundkonverter_filter_sox::infoProcessExit(int exitCode, QProcess::ExitStat
     Q_UNUSED(exitStatus)
     Q_UNUSED(exitCode)
 
-    QRegularExpression formatsReg("AUDIO FILE FORMATS: ([^\n]*)");
-    if (infoProcessOutputData.contains(formatsReg)) {
-        const QStringList formats = formatsReg.cap(1).split(" ", QString::SkipEmptyParts);
+    QRegularExpressionMatch match;
+    static QRegularExpression formatsReg("AUDIO FILE FORMATS: ([^\n]*)");
+    if (infoProcessOutputData.contains(formatsReg, &match)) {
+        const QStringList formats = match.captured(1).split(" ", Qt::SkipEmptyParts);
 
         soxCodecList.clear();
 
@@ -487,13 +515,13 @@ void soundkonverter_filter_sox::infoProcessExit(int exitCode, QProcess::ExitStat
         group = conf->group("Plugin-" + name());
         group.writeEntry("configVersion", version());
         group.writeEntry("soxLastModified", soxLastModified);
-        group.writeEntry("codecList", soxCodecList.toList());
+        group.writeEntry("codecList", soxCodecList.values());
     }
 
     infoProcessOutputData.clear();
     infoProcess.data()->deleteLater();
 }
 
-K_PLUGIN_FACTORY(filter_sox, registerPlugin<soundkonverter_filter_sox>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_filter_soxFactory, "soundkonverter_filter_sox.json", registerPlugin<soundkonverter_filter_sox>();)
 
 #include "soundkonverter_filter_sox.moc"
