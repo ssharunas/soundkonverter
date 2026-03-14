@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "hessijames@gmail.com",
+                "Name": "Daniel Faust"
+            }
+        ],
+        "License": "GPL",
+        "Name": "soundKonverter aacgain plugin",
+        "ServiceTypes": [
+            "soundKonverter/ReplayGainPlugin"
+        ],
+        "Version": "1.0"
+    }
+}

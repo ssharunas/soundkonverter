@@ -161,7 +161,7 @@ float soundkonverter_filter_normalize::parseOutput(const QString &output)
     static QRegularExpression re("(\\d+)% done");
     QRegularExpressionMatch match = re.matchView(output);
 
-    if (match.isValid())
+    if (match.hasMatch())
         return match.capturedView(1).toFloat();
 
     return -1;

@@ -1,4 +1,3 @@
-
 #include "vorbisreplaygainglobal.h"
 
 #include "soundkonverter_replaygain_vorbisgain.h"
@@ -108,10 +107,10 @@ float soundkonverter_replaygain_vorbisgain::parseOutput(const QString &output, R
     // -12.14 dB |  46927 |  0.25 |    11599 | 03 - Sugar.ogg
     //   59% - 04 - Suggestions.ogg
 
-    QRegExp regApply("(\\d+)%");
-    if (output.contains(regApply)) {
-        progress = (float)regApply.cap(1).toInt();
-    }
+    QRegularExpression regApply("(\\d+)%");
+    auto match = regApply.matchView(output);
+    if (match.hasMatch())
+        progress = (float)match.capturedView(1).toInt();
 
     if (progress == -1)
         return -1;
@@ -157,6 +156,6 @@ void soundkonverter_replaygain_vorbisgain::processOutput()
     }
 }
 
-K_PLUGIN_FACTORY(replaygain_vorbisgain, registerPlugin<soundkonverter_replaygain_vorbisgain>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_replaygain_vorbisgainFactory, "soundkonverter_replaygain_vorbisgain.json", registerPlugin<soundkonverter_replaygain_vorbisgain>();)
 
 #include "soundkonverter_replaygain_vorbisgain.moc"

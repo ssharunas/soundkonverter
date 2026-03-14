@@ -3,6 +3,8 @@
 
 #include "soundkonverter_replaygain_metaflac.h"
 
+#include <KLocalizedString>
+
 soundkonverter_replaygain_metaflac::soundkonverter_replaygain_metaflac(QObject *parent, const QVariantList &args)
     : ReplayGainPlugin(parent)
 {
@@ -103,6 +105,6 @@ float soundkonverter_replaygain_metaflac::parseOutput(const QString &output)
     return -1;
 }
 
-K_PLUGIN_FACTORY(replaygain_metaflac, registerPlugin<soundkonverter_replaygain_metaflac>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_replaygain_metaflacFactory, "soundkonverter_replaygain_metaflac.json", registerPlugin<soundkonverter_replaygain_metaflac>();)
 
 #include "soundkonverter_replaygain_metaflac.moc"

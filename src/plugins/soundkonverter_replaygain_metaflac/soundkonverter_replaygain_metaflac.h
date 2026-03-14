@@ -4,6 +4,7 @@
 
 #include "../../core/replaygainplugin.h"
 
+#include <KPluginFactory>
 #include <QUrl>
 
 class ConversionOptions;

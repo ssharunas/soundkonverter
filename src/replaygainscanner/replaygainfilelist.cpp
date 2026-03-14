@@ -34,11 +34,10 @@ ReplayGainFileList::ReplayGainFileList(Config *_config, Logger *_logger, QWidget
 
     setColumnCount(3);
     QStringList labels;
-    labels.append(i18n("File"));
-    labels.append(i18n("Track"));
-    labels.append(i18n("Album"));
+    labels.append(i18n("Album/File"));
+    labels.append(i18n("Track gain"));
+    labels.append(i18n("Album gain"));
     setHeaderLabels(labels);
-    //     header()->setClickEnabled( false );
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -378,7 +377,7 @@ void ReplayGainFileList::addFiles(const QList<QUrl> &fileList, const QString &_c
                 newAlbumItem->type = ReplayGainFileListItem::Album;
                 newAlbumItem->codecName = codecName;
                 newAlbumItem->samplingRate = samplingRate;
-                newAlbumItem->url = url.adjusted(QUrl::RemoveFilename).path();
+                newAlbumItem->url = QUrl::fromLocalFile(url.adjusted(QUrl::RemoveFilename).path());
                 if (config->data.general.replayGainGrouping == Config::Data::General::AlbumDirectory) {
                     newAlbumItem->albumName = tags->album;
                     newAlbumItem->setToolTip(Column_File, url.adjusted(QUrl::RemoveFilename).path());

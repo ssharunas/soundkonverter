@@ -1,4 +1,3 @@
-
 #include "soxfilterglobal.h"
 
 #include "../../core/conversionoptions.h"
@@ -13,7 +12,6 @@
 #include <KMessageBox>
 #include <KPageDialog>
 #include <KSharedConfig>
-#include <QDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -459,7 +457,7 @@ float soundkonverter_filter_sox::parseOutput(const QString &output)
 
     static QRegularExpression rx("(\\d+\\.\\d+)%");
     QRegularExpressionMatch match = rx.matchView(output);
-    if (match.isValid()) {
+    if (match.hasMatch()) {
         return match.capturedView(1).toFloat();
     }
 

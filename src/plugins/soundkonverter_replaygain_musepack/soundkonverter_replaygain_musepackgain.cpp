@@ -3,6 +3,7 @@
 
 #include "soundkonverter_replaygain_musepackgain.h"
 
+#include <KPluginFactory>
 #include <QFile>
 
 soundkonverter_replaygain_musepackgain::soundkonverter_replaygain_musepackgain(QObject *parent, const QVariantList &args)
@@ -104,6 +105,6 @@ float soundkonverter_replaygain_musepackgain::parseOutput(const QString &output)
     return -1;
 }
 
-K_PLUGIN_FACTORY(replaygain_musepackgain, registerPlugin<soundkonverter_replaygain_musepackgain>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_replaygain_musepackgainFactory, "soundkonverter_replaygain_musepackgain.json", registerPlugin<soundkonverter_replaygain_musepackgain>();)
 
 #include "soundkonverter_replaygain_musepackgain.moc"

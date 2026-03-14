@@ -172,6 +172,7 @@ void PluginLoader::load()
     for (const KPluginMetaData &filterPlugin : filterPluginsVect) {
         if (auto pluginResult = KPluginFactory::instantiatePlugin<FilterPlugin>(filterPlugin, this, QVariantList())) {
             auto plugin = pluginResult.plugin;
+            logger->log(1000, "\tloading plugin: " + plugin->name());
             plugin->scanForBackends();
             QMap<QString, int> encodeCodecs;
             QMap<QString, int> decodeCodecs;
@@ -224,44 +225,38 @@ void PluginLoader::load()
         }
     }
 
+    const QVector<KPluginMetaData> gainPluginsVect = KPluginMetaData::findPlugins("soundkonverterplugins/replaygain");
+    for (const KPluginMetaData &gainPlugin : gainPluginsVect) {
+        if (auto pluginResult = KPluginFactory::instantiatePlugin<ReplayGainPlugin>(gainPlugin, this, QVariantList())) {
+            auto plugin = pluginResult.plugin;
+            logger->log(1000, "\tloading plugin: " + plugin->name());
+            plugin->scanForBackends();
+            QList<ReplayGainPipe> codecTable = plugin->codecTable();
+
+            for (int j = 0; j < codecTable.count(); j++) {
+                codecTable[j].plugin = plugin;
+                replaygainPipes.append(codecTable.at(j));
+                QString spaces;
+                spaces.fill(' ', 12 - codecTable.at(j).codecName.length());
+
+                logger->log(1000,
+                            "<pre>\t\t\t"
+                                + QString("%1%2(%3)")
+                                      .arg(codecTable.at(j).codecName)
+                                      .arg(spaces)
+                                      .arg(codecTable.at(j).enabled ? "<span style=\"color:green\">enabled</span>" : "<span style=\"color:red\">disabled</span>")
+                                + "</pre>");
+
+                addFormatInfo(codecTable.at(j).codecName, plugin);
+            }
+            logger->log(1000, "");
+
+            replaygainPlugins << plugin;
+        } else {
+            logger->log(1000, "<pre>\t<span style=\"color:red\">failed to load plugin: " + gainPlugin.fileName() + "</span></pre>");
+        }
+    }
     /*
-
-     offers = KServiceTypeTrader::self()->query("soundKonverter/ReplayGainPlugin");
-
-      if( !offers.isEmpty() )
-      {
-          for( int i=0; i<offers.size(); i++ )
-          {
-              createInstanceTime.start();
-              QVariantList allArgs;More actions
-              allArgs << offers.at(i)->storageId() << "";
-              QString error;
-
-             ReplayGainPlugin *plugin = offers.at(i).data()->createInstance<ReplayGainPlugin>(0, allArgs, &error );
-             if( plugin )
-             {
-                 logger->log( 1000, "\tloading plugin: " + plugin->name() );
-                 createInstanceTimeSum += createInstanceTime.elapsed();
-                 replaygainPlugins.append( plugin );
-                 plugin->scanForBackends();
-                 QList<ReplayGainPipe> codecTable = plugin->codecTable();
-                 for( int j = 0; j < codecTable.count(); j++ )
-                 {
-                     codecTable[j].plugin = plugin;
-                     replaygainPipes.append( codecTable.at(j) );
-                     QString spaces;
-                     spaces.fill( ' ', 12 - codecTable.at(j).codecName.length() );
-                     logger->log( 1000, "<pre>\t\t\t" + QString("%1%2(%3)").arg(codecTable.at(j).codecName).arg(spaces).arg(codecTable.at(j).enabled ? "<span
-     style=\"color:green\">enabled</span>" : "<span style=\"color:red\">disabled</span>") + "</pre>" ); addFormatInfo( codecTable.at(j).codecName, plugin );
-                 }
-                 logger->log( 1000, "" );
-             }
-             else
-             {
-                 logger->log( 1000, "<pre>\t<span style=\"color:red\">failed to load plugin: " + offers.at(i)->library() + "</span></pre>" );
-             }
-         }
-     }
 
      offers = KServiceTypeTrader::self()->query("soundKonverter/RipperPlugin");
 
@@ -850,7 +845,6 @@ bool PluginLoader::canRipEntireCd(QStringList *errorList)
 QMap<QString, QStringList> PluginLoader::decodeProblems(bool detailed)
 {
     QMap<QString, QStringList> problems;
-    QStringList errorList;
     QStringList enabledCodecs;
 
     if (!detailed) {
@@ -875,7 +869,6 @@ QMap<QString, QStringList> PluginLoader::decodeProblems(bool detailed)
 QMap<QString, QStringList> PluginLoader::encodeProblems(bool detailed)
 {
     QMap<QString, QStringList> problems;
-    QStringList errorList;
     QStringList enabledCodecs;
 
     if (!detailed) {
@@ -900,7 +893,6 @@ QMap<QString, QStringList> PluginLoader::encodeProblems(bool detailed)
 QMap<QString, QStringList> PluginLoader::replaygainProblems(bool detailed)
 {
     QMap<QString, QStringList> problems;
-    QStringList errorList;
     QStringList enabledCodecs;
 
     if (!detailed) {

@@ -1,7 +1,8 @@
-
 #include "wvreplaygainglobal.h"
 
 #include "soundkonverter_replaygain_wvgain.h"
+
+#include <KLocalizedString>
 
 soundkonverter_replaygain_wvgain::soundkonverter_replaygain_wvgain(QObject *parent, const QVariantList &args)
     : ReplayGainPlugin(parent)
@@ -103,13 +104,13 @@ float soundkonverter_replaygain_wvgain::parseOutput(const QString &output)
     // analyzing test.wv,  35% done...
 
     QRegularExpression reg("\\s+(\\d+)% done");
-    if (output.contains(reg)) {
-        return (float)reg.cap(1).toInt();
-    }
+    QRegularExpressionMatch match = reg.matchView(output);
+    if (match.hasMatch())
+        return (float)match.capturedView(1).toInt();
 
     return -1;
 }
 
-K_PLUGIN_FACTORY(replaygain_wvgain, registerPlugin<soundkonverter_replaygain_wvgain>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_replaygain_wvgainFactory, "soundkonverter_replaygain_wvgain.json", registerPlugin<soundkonverter_replaygain_wvgain>();)
 
 #include "soundkonverter_replaygain_wvgain.moc"

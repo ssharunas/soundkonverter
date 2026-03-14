@@ -3,12 +3,94 @@
 
 #include "soundkonverter_replaygain_aacgain.h"
 
+#include <KConfigGroup>
+#include <KLocalizedString>
+#include <KPageDialog>
+#include <KSharedConfig>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
+
+class ConfigDialog : public KPageDialog
+{
+public:
+    explicit ConfigDialog(soundkonverter_replaygain_aacgain *plugin, QWidget *parent)
+        : KPageDialog(parent)
+        , plugin(plugin)
+    {
+        setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
+        setWindowTitle(i18n("Configure %1", plugin->name()));
+
+        QWidget *configDialogWidget = new QWidget(this);
+        QVBoxLayout *configDialogBox = new QVBoxLayout(configDialogWidget);
+
+        QHBoxLayout *configDialogBox1 = new QHBoxLayout();
+        QLabel *configDialogTagModeLabel = new QLabel(i18n("Use tag format:"), configDialogWidget);
+        configDialogBox1->addWidget(configDialogTagModeLabel);
+        configDialogTagModeComboBox = new QComboBox(configDialogWidget);
+        configDialogTagModeComboBox->addItem("APE");
+        configDialogTagModeComboBox->addItem("ID3v2");
+        configDialogBox1->addWidget(configDialogTagModeComboBox);
+        configDialogBox->addLayout(configDialogBox1);
+
+        QHBoxLayout *configDialogBox3 = new QHBoxLayout();
+        QLabel *configDialogGainAdjustmentLabel = new QLabel(i18n("Adjust gain:"), configDialogWidget);
+        configDialogBox3->addWidget(configDialogGainAdjustmentLabel);
+        configDialogGainAdjustmentSpinBox = new QDoubleSpinBox(configDialogWidget);
+        configDialogGainAdjustmentSpinBox->setRange(-99, 99);
+        configDialogGainAdjustmentSpinBox->setSuffix(" " + i18nc("decibel", "dB"));
+        configDialogGainAdjustmentSpinBox->setToolTip(i18n("Lower or raise the suggested gain"));
+        configDialogBox3->addWidget(configDialogGainAdjustmentSpinBox);
+        configDialogBox->addLayout(configDialogBox3);
+
+        QHBoxLayout *configDialogBox2 = new QHBoxLayout();
+        configDialogModifyAudioStreamCheckBox = new QCheckBox(i18n("Modify audio stream"), configDialogWidget);
+        configDialogModifyAudioStreamCheckBox->setToolTip(
+            i18n("Write gain adjustments directly into the encoded data. That way the adjustment works with all mp3 players.\nUndoing the changes is still "
+                 "possible since correction data will be written as well."));
+        configDialogBox2->addWidget(configDialogModifyAudioStreamCheckBox);
+        configDialogBox->addLayout(configDialogBox2);
+
+        connect(this, &ConfigDialog::accepted, this, &ConfigDialog::save);
+        connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ConfigDialog::resetDefault);
+
+        this->addPage(configDialogWidget, "");
+    }
+
+    void show(int tagMode, bool modifyAudioStream, double gainAdjustment)
+    {
+        configDialogTagModeComboBox->setCurrentIndex(tagMode);
+        configDialogModifyAudioStreamCheckBox->setChecked(modifyAudioStream);
+        configDialogGainAdjustmentSpinBox->setValue(gainAdjustment);
+        this->KPageDialog::show();
+    }
+
+private:
+    QComboBox *configDialogTagModeComboBox;
+    QCheckBox *configDialogModifyAudioStreamCheckBox;
+    QDoubleSpinBox *configDialogGainAdjustmentSpinBox;
+    soundkonverter_replaygain_aacgain *plugin;
+
+    void resetDefault()
+    {
+        configDialogTagModeComboBox->setCurrentIndex(0);
+        configDialogModifyAudioStreamCheckBox->setChecked(false);
+        configDialogGainAdjustmentSpinBox->setValue(0.0);
+    }
+
+    void save()
+    {
+        int tagMode = configDialogTagModeComboBox->currentIndex();
+        bool modifyAudioStream = configDialogModifyAudioStreamCheckBox->isChecked();
+        double gainAdjustment = configDialogGainAdjustmentSpinBox->value();
+
+        plugin->setValues(tagMode, modifyAudioStream, gainAdjustment);
+    }
+};
 
 AacGainPluginItem::AacGainPluginItem(QObject *parent)
     : ReplayGainPluginItem(parent)
@@ -23,10 +105,6 @@ soundkonverter_replaygain_aacgain::soundkonverter_replaygain_aacgain(QObject *pa
     : ReplayGainPlugin(parent)
 {
     Q_UNUSED(args)
-
-    configDialogTagModeComboBox = 0;
-    configDialogModifyAudioStreamCheckBox = 0;
-    configDialogGainAdjustmentSpinBox = 0;
 
     binaries["aacgain"] = "";
 
@@ -84,77 +162,22 @@ void soundkonverter_replaygain_aacgain::showConfigDialog(ActionType action, cons
     Q_UNUSED(action)
     Q_UNUSED(codecName)
 
-    if (!configDialog.data()) {
-        configDialog = new QDialog(parent);
-        configDialog.data()->setCaption(i18n("Configure %1", *global_plugin_name));
-        configDialog.data()->setButtons(QDialog::Ok | QDialog::Cancel | QDialog::Default);
+    if (!configDialog.data())
+        configDialog = new ConfigDialog(this, parent);
 
-        QWidget *configDialogWidget = new QWidget(configDialog.data());
-        QVBoxLayout *configDialogBox = new QVBoxLayout(configDialogWidget);
-
-        QHBoxLayout *configDialogBox1 = new QHBoxLayout();
-        QLabel *configDialogTagModeLabel = new QLabel(i18n("Use tag format:"), configDialogWidget);
-        configDialogBox1->addWidget(configDialogTagModeLabel);
-        configDialogTagModeComboBox = new QComboBox(configDialogWidget);
-        configDialogTagModeComboBox->addItem("APE");
-        configDialogTagModeComboBox->addItem("ID3v2");
-        configDialogBox1->addWidget(configDialogTagModeComboBox);
-        configDialogBox->addLayout(configDialogBox1);
-
-        QHBoxLayout *configDialogBox3 = new QHBoxLayout();
-        QLabel *configDialogGainAdjustmentLabel = new QLabel(i18n("Adjust gain:"), configDialogWidget);
-        configDialogBox3->addWidget(configDialogGainAdjustmentLabel);
-        configDialogGainAdjustmentSpinBox = new QDoubleSpinBox(configDialogWidget);
-        configDialogGainAdjustmentSpinBox->setRange(-99, 99);
-        configDialogGainAdjustmentSpinBox->setSuffix(" " + i18nc("decibel", "dB"));
-        configDialogGainAdjustmentSpinBox->setToolTip(i18n("Lower or raise the suggested gain"));
-        configDialogBox3->addWidget(configDialogGainAdjustmentSpinBox);
-        configDialogBox->addLayout(configDialogBox3);
-
-        QHBoxLayout *configDialogBox2 = new QHBoxLayout();
-        configDialogModifyAudioStreamCheckBox = new QCheckBox(i18n("Modify audio stream"), configDialogWidget);
-        configDialogModifyAudioStreamCheckBox->setToolTip(
-            i18n("Write gain adjustments directly into the encoded data. That way the adjustment works with all mp3 players.\nUndoing the changes is still "
-                 "possible since correction data will be written as well."));
-        configDialogBox2->addWidget(configDialogModifyAudioStreamCheckBox);
-        configDialogBox->addLayout(configDialogBox2);
-
-        configDialog.data()->setMainWidget(configDialogWidget);
-        connect(configDialog.data(), SIGNAL(okClicked()), this, SLOT(configDialogSave()));
-        connect(configDialog.data(), SIGNAL(defaultClicked()), this, SLOT(configDialogDefault()));
-    }
-    configDialogTagModeComboBox->setCurrentIndex(tagMode);
-    configDialogModifyAudioStreamCheckBox->setChecked(modifyAudioStream);
-    configDialogGainAdjustmentSpinBox->setValue(gainAdjustment);
-    configDialog.data()->show();
+    if (auto dialog = dynamic_cast<ConfigDialog *>(configDialog.data()))
+        dialog->show(tagMode, modifyAudioStream, gainAdjustment);
 }
 
-void soundkonverter_replaygain_aacgain::configDialogSave()
+void soundkonverter_replaygain_aacgain::setValues(int tagMode, bool modifyAudioStream, double gainAdjustment)
 {
-    if (configDialog.data()) {
-        tagMode = configDialogTagModeComboBox->currentIndex();
-        modifyAudioStream = configDialogModifyAudioStreamCheckBox->isChecked();
-        gainAdjustment = configDialogGainAdjustmentSpinBox->value();
+    KSharedConfig::Ptr conf = KSharedConfig::openConfig();
+    KConfigGroup group;
 
-        KSharedConfig::Ptr conf = KSharedConfig::openConfig();
-        KConfigGroup group;
-
-        group = conf->group("Plugin-" + name());
-        group.writeEntry("tagMode", tagMode);
-        group.writeEntry("modifyAudioStream", modifyAudioStream);
-        group.writeEntry("gainAdjustment", gainAdjustment);
-
-        configDialog.data()->deleteLater();
-    }
-}
-
-void soundkonverter_replaygain_aacgain::configDialogDefault()
-{
-    if (configDialog.data()) {
-        configDialogTagModeComboBox->setCurrentIndex(0);
-        configDialogModifyAudioStreamCheckBox->setChecked(false);
-        configDialogGainAdjustmentSpinBox->setValue(0.0);
-    }
+    group = conf->group("Plugin-" + name());
+    group.writeEntry("tagMode", tagMode);
+    group.writeEntry("modifyAudioStream", modifyAudioStream);
+    group.writeEntry("gainAdjustment", gainAdjustment);
 }
 
 bool soundkonverter_replaygain_aacgain::hasInfo()
@@ -169,23 +192,23 @@ void soundkonverter_replaygain_aacgain::showInfo(QWidget *parent)
 
 int soundkonverter_replaygain_aacgain::apply(const QList<QUrl> &fileList, ReplayGainPlugin::ApplyMode mode)
 {
-    if (fileList.count() <= 0)
+    if (fileList.empty())
         return BackendPlugin::UnknownError;
 
     AacGainPluginItem *newItem = new AacGainPluginItem(this);
     newItem->id = lastId++;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
+    connect(newItem->process, &QIODevice::readyRead, this, &soundkonverter_replaygain_aacgain::processOutput);
 
     QStringList command;
     command += binaries["aacgain"];
     if (mode == ReplayGainPlugin::Add) {
         command += "-k";
-        if (modifyAudioStream) {
+        if (modifyAudioStream)
             command += "-a";
-        }
-        connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+
+        connect(newItem->process, &KProcess::finished, this, &soundkonverter_replaygain_aacgain::undoProcessExit);
     } else if (mode == ReplayGainPlugin::Force) {
         command += "-k";
         if (modifyAudioStream) {
@@ -193,10 +216,10 @@ int soundkonverter_replaygain_aacgain::apply(const QList<QUrl> &fileList, Replay
         }
         command += "-s";
         command += "r";
-        connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+        connect(newItem->process, &KProcess::finished, this, &soundkonverter_replaygain_aacgain::undoProcessExit);
     } else {
         command += "-u";
-        connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(undoProcessExit(int, QProcess::ExitStatus)));
+        connect(newItem->process, &KProcess::finished, this, &soundkonverter_replaygain_aacgain::undoProcessExit);
         newItem->undoFileList = fileList;
     }
     if (gainAdjustment != 0) {
@@ -253,8 +276,8 @@ void soundkonverter_replaygain_aacgain::undoProcessExit(int exitCode, QProcess::
 
     item->process = new KProcess(item);
     item->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(item->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(item->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+    connect(item->process, &QProcess::readyRead, this, &soundkonverter_replaygain_aacgain::processOutput);
+    connect(item->process, &QProcess::finished, this, &soundkonverter_replaygain_aacgain::processExit);
 
     QStringList command;
     command += binaries["aacgain"];
@@ -287,24 +310,32 @@ float soundkonverter_replaygain_aacgain::parseOutput(const QString &output)
 
     QRegularExpression reg1("\\[(\\d+)/(\\d+)\\] (\\d+)%");
     QRegularExpression reg2("(\\d+)%");
-    if (output.contains(reg1)) {
-        float fraction = 1.0f / (float)reg1.cap(2).toInt();
-        progress = 100 * ((float)reg1.cap(1).toInt() - 1) * fraction + (float)reg1.cap(3).toInt() * fraction;
-    } else if (output.contains(reg2)) {
-        progress = (float)reg2.cap(1).toInt();
+
+    QRegularExpressionMatch match = reg1.matchView(output);
+    if (match.hasMatch()) {
+        float fraction = 1.0f / match.capturedView(2).toInt();
+        progress = 100 * ((float)match.capturedView(1).toInt() - 1) * fraction + (float)match.capturedView(3).toInt() * fraction;
+    } else {
+        match = reg2.matchView(output);
+
+        if (match.hasMatch())
+            progress = (float)match.capturedView(1).toInt();
     }
 
-    // Applying mp3 gain change of -6 to /home/user/file.mp3...
-    // Undoing mp3gain changes (6,6) to /home/user/file.mp3...
-    // Deleting tag info of /home/user/file.mp3...
-    QRegularExpression reg3("[Applying mp3 gain change|Undoing mp3gain changes|Deleting tag info]");
-    if (progress == -1 && output.contains(reg3)) {
-        progress = 0.0f;
+    if (progress < 0) {
+        // Applying mp3 gain change of -6 to /home/user/file.mp3...
+        // Undoing mp3gain changes (6,6) to /home/user/file.mp3...
+        // Deleting tag info of /home/user/file.mp3...
+        QRegularExpression reg3("[Applying mp3 gain change|Undoing mp3gain changes|Deleting tag info]");
+        match = reg3.matchView(output);
+
+        if (match.hasMatch())
+            progress = 0;
     }
 
     return progress;
 }
 
-K_PLUGIN_FACTORY(replaygain_aacgain, registerPlugin<soundkonverter_replaygain_aacgain>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_replaygain_aacgainFactory, "soundkonverter_replaygain_aacgain.json", registerPlugin<soundkonverter_replaygain_aacgain>();)
 
 #include "soundkonverter_replaygain_aacgain.moc"

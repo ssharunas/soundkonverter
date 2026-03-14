@@ -291,8 +291,6 @@ void FileList::addFiles(const QList<QUrl> &fileList,
                         int conversionOptionsId)
 {
     QString codecName;
-    QString filePathName;
-    QString device;
 
     int lastConversionOptionsId = -1;
 

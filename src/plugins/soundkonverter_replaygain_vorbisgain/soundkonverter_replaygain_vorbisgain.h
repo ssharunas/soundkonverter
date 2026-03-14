@@ -1,9 +1,9 @@
-
 #ifndef SOUNDKONVERTER_REPLAYGAIN_VORBISGAIN_H
 #define SOUNDKONVERTER_REPLAYGAIN_VORBISGAIN_H
 
 #include "../../core/replaygainplugin.h"
 
+#include <KPluginFactory>
 #include <QUrl>
 
 class ConversionOptions;

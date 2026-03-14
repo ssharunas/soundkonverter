@@ -4,14 +4,12 @@
 
 #include "../../core/replaygainplugin.h"
 
+#include <KPluginFactory>
 #include <QPointer>
 #include <QUrl>
 
 class ConversionOptions;
 class QDialog;
-class QComboBox;
-class QCheckBox;
-class QDoubleSpinBox;
 
 class AacGainPluginItem : public ReplayGainPluginItem
 {
@@ -45,11 +43,10 @@ public:
     int apply(const QList<QUrl> &fileList, ApplyMode mode = Add);
     float parseOutput(const QString &output);
 
+    void setValues(int tagMode, bool modifyAudioStream, double gainAdjustment);
+
 private:
     QPointer<QDialog> configDialog;
-    QComboBox *configDialogTagModeComboBox;
-    QCheckBox *configDialogModifyAudioStreamCheckBox;
-    QDoubleSpinBox *configDialogGainAdjustmentSpinBox;
 
     int tagMode;
     bool modifyAudioStream;
