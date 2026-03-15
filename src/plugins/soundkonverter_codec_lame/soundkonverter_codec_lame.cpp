@@ -1,4 +1,3 @@
-
 #include "lamecodecglobal.h"
 
 #include "lamecodecwidget.h"

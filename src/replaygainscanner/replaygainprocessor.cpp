@@ -3,7 +3,6 @@
 
 #include "config.h"
 #include "core/replaygainplugin.h"
-#include "global.h"
 #include "logger.h"
 #include "replaygainfilelist.h"
 

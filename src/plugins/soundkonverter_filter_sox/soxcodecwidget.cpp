@@ -1,4 +1,3 @@
-
 #include "soxfilterglobal.h"
 
 #include "../../core/conversionoptions.h"

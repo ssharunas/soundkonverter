@@ -1,8 +1,7 @@
-
-
 #ifndef REPLAYGAINPROCESSOR_H
 #define REPLAYGAINPROCESSOR_H
 
+#include "core/replaygainplugin.h"
 #include "replaygainfilelistitem.h"
 
 #include <QElapsedTimer>

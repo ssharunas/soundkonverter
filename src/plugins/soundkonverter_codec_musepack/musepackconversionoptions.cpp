@@ -1,4 +1,3 @@
-
 #include "musepackcodecglobal.h"
 
 #include "musepackconversionoptions.h"

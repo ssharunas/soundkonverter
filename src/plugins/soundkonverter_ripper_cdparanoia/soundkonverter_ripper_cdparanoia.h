@@ -1,18 +1,14 @@
-
 #ifndef SOUNDKONVERTER_RIPPER_CDPARANOIA_H
 #define SOUNDKONVERTER_RIPPER_CDPARANOIA_H
 
 #include "../../core/ripperplugin.h"
 
-#include <KProcess>
+#include <KPluginFactory>
 #include <QList>
 #include <QPointer>
 #include <QUrl>
 
 class QDialog;
-class QCheckBox;
-class QComboBox;
-class QSpinBox;
 
 class soundkonverter_ripper_cdparanoia : public RipperPlugin
 {
@@ -38,29 +34,20 @@ public:
     float parseOutput(const QString &output, int *fromSector, int *toSector);
     float parseOutput(const QString &output);
 
+    void setValues(int forceReadSpeed, int forceEndianness, int maximumRetries, bool enableParanoia, bool enableExtraParanoia);
+
 private slots:
     /** Get the process' output */
     void processOutput();
 
 private:
     QPointer<QDialog> configDialog;
-    QCheckBox *configDialogForceReadSpeedCheckBox;
-    QSpinBox *configDialogForceReadSpeedSpinBox;
-    QComboBox *configDialogForceEndiannessComboBox;
-    QSpinBox *configDialogMaximumRetriesSpinBox;
-    QCheckBox *configDialogEnableParanoiaCheckBox;
-    QCheckBox *configDialogEnableExtraParanoiaCheckBox;
 
     int forceReadSpeed;
     int forceEndianness;
     int maximumRetries;
     bool enableParanoia;
     bool enableExtraParanoia;
-
-private slots:
-    void configDialogForceReadSpeedChanged(int state);
-    void configDialogSave();
-    void configDialogDefault();
 };
 
 #endif // SOUNDKONVERTER_RIPPER_CDPARANOIA_H

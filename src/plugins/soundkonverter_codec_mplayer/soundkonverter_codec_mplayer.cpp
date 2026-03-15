@@ -1,4 +1,3 @@
-
 #include "mplayercodecglobal.h"
 
 #include "../../core/conversionoptions.h"

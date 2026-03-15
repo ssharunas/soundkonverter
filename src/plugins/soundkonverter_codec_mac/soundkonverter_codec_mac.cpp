@@ -1,4 +1,3 @@
-
 #include "maccodecglobal.h"
 
 #include "../../core/conversionoptions.h"

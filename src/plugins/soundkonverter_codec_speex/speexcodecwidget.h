@@ -1,4 +1,3 @@
-
 #ifndef SPEEXCODECWIDGET_H
 #define SPEEXCODECWIDGET_H
 

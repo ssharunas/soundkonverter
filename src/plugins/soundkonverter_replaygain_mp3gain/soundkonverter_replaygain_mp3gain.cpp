@@ -1,4 +1,3 @@
-
 #include "mp3replaygainglobal.h"
 
 #include "soundkonverter_replaygain_mp3gain.h"

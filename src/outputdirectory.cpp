@@ -1,4 +1,3 @@
-
 #include "outputdirectory.h"
 #include "config.h"
 #include "core/conversionoptions.h"
@@ -496,7 +495,7 @@ void OutputDirectory::modeChangedSlot(int mode)
 
     connect(cDir, &QComboBox::editTextChanged, this, &OutputDirectory::directoryChangedSlot);
 
-    emit modeChanged(mode);
+    emit modeChanged((Mode)mode);
 }
 
 void OutputDirectory::updateMode(Mode mode)

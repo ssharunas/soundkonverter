@@ -1,4 +1,3 @@
-
 #include "aacreplaygainglobal.h"
 
 #include "soundkonverter_replaygain_aacgain.h"

@@ -1,8 +1,7 @@
-
-
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include "outputdirectory.h"
 #include <QWidget>
 
 class OptionsSimple;
@@ -41,7 +40,7 @@ public slots:
     void setFormat(const QString &format);
 
     /** Set the current output directory mode */
-    void setOutputDirectoryMode(int mode);
+    void setOutputDirectoryMode(OutputDirectory::Mode mode);
 
     /** Set the current output directory */
     void setOutputDirectory(const QString &directory);
@@ -59,7 +58,7 @@ private:
 
 private slots:
     void tabChanged(const int pageIndex);
-    void simpleOutputDirectoryModeChanged(const int mode);
+    void simpleOutputDirectoryModeChanged(const OutputDirectory::Mode mode);
     void simpleOutputDirectoryChanged(const QString &);
     void simpleOptionsChanged();
     void detailedOutputDirectoryModeChanged(const int mode);

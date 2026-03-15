@@ -1,4 +1,3 @@
-
 #ifndef LAMECODECWIDGET_H
 #define LAMECODECWIDGET_H
 

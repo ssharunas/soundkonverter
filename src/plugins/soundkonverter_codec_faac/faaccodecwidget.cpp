@@ -1,4 +1,3 @@
-
 #include "faaccodecglobal.h"
 
 #include "../../core/conversionoptions.h"

@@ -1,8 +1,11 @@
-
 #include "cdparanoiaripperglobal.h"
 
 #include "soundkonverter_ripper_cdparanoia.h"
 
+#include <KConfigGroup>
+#include <KLocalizedString>
+#include <KPageDialog>
+#include <KSharedConfig>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -10,20 +13,123 @@
 #include <QLabel>
 #include <QLayout>
 #include <QLocale>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QWidget>
+
+class ConfigDialog : public KPageDialog
+{
+    Q_OBJECT
+public:
+    explicit ConfigDialog(soundkonverter_ripper_cdparanoia *plugin, QWidget *parent)
+        : KPageDialog(parent)
+        , plugin(plugin)
+    {
+        setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Reset);
+        setWindowTitle(i18n("Configure %1", plugin->name()));
+
+        QWidget *configDialogWidget = new QWidget(this);
+        QVBoxLayout *configDialogBox = new QVBoxLayout(configDialogWidget);
+
+        QHBoxLayout *configDialogBox0 = new QHBoxLayout();
+        configDialogForceReadSpeedCheckBox = new QCheckBox(i18n("Force read speed:"), configDialogWidget);
+        configDialogBox0->addWidget(configDialogForceReadSpeedCheckBox);
+        configDialogForceReadSpeedSpinBox = new QSpinBox(configDialogWidget);
+        configDialogForceReadSpeedSpinBox->setRange(1, 64);
+        configDialogForceReadSpeedSpinBox->setSuffix(" x");
+        configDialogBox0->addWidget(configDialogForceReadSpeedSpinBox);
+        configDialogBox->addLayout(configDialogBox0);
+        connect(configDialogForceReadSpeedCheckBox, &QCheckBox::checkStateChanged, this, &ConfigDialog::configDialogForceReadSpeedChanged);
+
+        QHBoxLayout *configDialogBox1 = new QHBoxLayout();
+        QLabel *configDialogForceEndiannessLabel = new QLabel(i18nc("Byte-Order", "Endianness:"), configDialogWidget);
+        configDialogBox1->addWidget(configDialogForceEndiannessLabel);
+        configDialogForceEndiannessComboBox = new QComboBox(configDialogWidget);
+        configDialogForceEndiannessComboBox->addItem("Auto");
+        configDialogForceEndiannessComboBox->addItem("Little endian");
+        configDialogForceEndiannessComboBox->addItem("Big endian");
+        configDialogBox1->addWidget(configDialogForceEndiannessComboBox);
+        configDialogBox->addLayout(configDialogBox1);
+
+        QHBoxLayout *configDialogBox2 = new QHBoxLayout();
+        QLabel *configDialogMaximumRetriesLabel = new QLabel(i18n("Maximum read retries:"), configDialogWidget);
+        configDialogBox2->addWidget(configDialogMaximumRetriesLabel);
+        configDialogMaximumRetriesSpinBox = new QSpinBox(configDialogWidget);
+        configDialogMaximumRetriesSpinBox->setRange(0, 100);
+        configDialogBox2->addWidget(configDialogMaximumRetriesSpinBox);
+        configDialogBox->addLayout(configDialogBox2);
+
+        QHBoxLayout *configDialogBox3 = new QHBoxLayout(configDialogWidget);
+        configDialogEnableParanoiaCheckBox = new QCheckBox(i18n("Enable paranoia"), configDialogWidget);
+        configDialogBox3->addWidget(configDialogEnableParanoiaCheckBox);
+        configDialogBox->addLayout(configDialogBox3);
+
+        QHBoxLayout *configDialogBox4 = new QHBoxLayout(configDialogWidget);
+        configDialogEnableExtraParanoiaCheckBox = new QCheckBox(i18n("Enable extra paranoia"), configDialogWidget);
+        configDialogBox4->addWidget(configDialogEnableExtraParanoiaCheckBox);
+        configDialogBox->addLayout(configDialogBox4);
+
+        connect(this, &ConfigDialog::accepted, this, &ConfigDialog::save);
+        connect(buttonBox()->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ConfigDialog::resetDefault);
+
+        this->addPage(configDialogWidget, "");
+    }
+
+    void show(int forceReadSpeed, int forceEndianness, int maximumRetries, bool enableParanoia, bool enableExtraParanoia)
+    {
+        configDialogForceReadSpeedCheckBox->setChecked(forceReadSpeed > 0);
+        configDialogForceReadSpeedSpinBox->setValue(forceReadSpeed);
+        configDialogForceEndiannessComboBox->setCurrentIndex(forceEndianness);
+        configDialogMaximumRetriesSpinBox->setValue(maximumRetries);
+        configDialogEnableParanoiaCheckBox->setChecked(enableParanoia);
+        configDialogEnableExtraParanoiaCheckBox->setChecked(enableExtraParanoia);
+        configDialogForceReadSpeedChanged(configDialogForceReadSpeedCheckBox->checkState());
+
+        this->KPageDialog::show();
+    }
+
+private:
+    QCheckBox *configDialogForceReadSpeedCheckBox;
+    QSpinBox *configDialogForceReadSpeedSpinBox;
+    QComboBox *configDialogForceEndiannessComboBox;
+    QSpinBox *configDialogMaximumRetriesSpinBox;
+    QCheckBox *configDialogEnableParanoiaCheckBox;
+    QCheckBox *configDialogEnableExtraParanoiaCheckBox;
+
+    soundkonverter_ripper_cdparanoia *plugin;
+
+    void resetDefault()
+    {
+        configDialogForceReadSpeedCheckBox->setChecked(false);
+        configDialogForceReadSpeedSpinBox->setValue(1);
+        configDialogForceEndiannessComboBox->setCurrentIndex(0);
+        configDialogMaximumRetriesSpinBox->setValue(20);
+        configDialogEnableParanoiaCheckBox->setChecked(true);
+        configDialogEnableExtraParanoiaCheckBox->setChecked(true);
+    }
+
+    void save()
+    {
+        int forceReadSpeed = configDialogForceReadSpeedCheckBox->isChecked() ? configDialogForceReadSpeedSpinBox->value() : 0;
+        int forceEndianness = configDialogForceEndiannessComboBox->currentIndex();
+        int maximumRetries = configDialogMaximumRetriesSpinBox->value();
+        bool enableParanoia = configDialogEnableParanoiaCheckBox->isChecked();
+        bool enableExtraParanoia = configDialogEnableExtraParanoiaCheckBox->isChecked();
+
+        plugin->setValues(forceReadSpeed, forceEndianness, maximumRetries, enableParanoia, enableExtraParanoia);
+    }
+private slots:
+
+    void configDialogForceReadSpeedChanged(Qt::CheckState state)
+    {
+        configDialogForceReadSpeedSpinBox->setEnabled(state == Qt::Checked);
+    }
+};
 
 soundkonverter_ripper_cdparanoia::soundkonverter_ripper_cdparanoia(QObject *parent, const QVariantList &args)
     : RipperPlugin(parent)
 {
     Q_UNUSED(args)
-
-    configDialogForceReadSpeedCheckBox = 0;
-    configDialogForceReadSpeedSpinBox = 0;
-    configDialogForceEndiannessComboBox = 0;
-    configDialogMaximumRetriesSpinBox = 0;
-    configDialogEnableParanoiaCheckBox = 0;
-    configDialogEnableExtraParanoiaCheckBox = 0;
 
     binaries["cdparanoia"] = "";
 
@@ -78,108 +184,24 @@ void soundkonverter_ripper_cdparanoia::showConfigDialog(ActionType action, const
     Q_UNUSED(action)
     Q_UNUSED(codecName)
 
-    if (!configDialog.data()) {
-        configDialog = new QDialog(parent);
-        configDialog.data()->setCaption(i18n("Configure %1", *global_plugin_name));
-        configDialog.data()->setButtons(QDialog::Ok | QDialog::Cancel | QDialog::Default);
+    if (!configDialog.data())
+        configDialog = new ConfigDialog(this, parent);
 
-        QWidget *configDialogWidget = new QWidget(configDialog.data());
-        QVBoxLayout *configDialogBox = new QVBoxLayout(configDialogWidget);
-
-        QHBoxLayout *configDialogBox0 = new QHBoxLayout();
-        configDialogForceReadSpeedCheckBox = new QCheckBox(i18n("Force read speed:"), configDialogWidget);
-        configDialogBox0->addWidget(configDialogForceReadSpeedCheckBox);
-        configDialogForceReadSpeedSpinBox = new QSpinBox(configDialogWidget);
-        configDialogForceReadSpeedSpinBox->setRange(1, 64);
-        configDialogForceReadSpeedSpinBox->setSuffix(" x");
-        configDialogBox0->addWidget(configDialogForceReadSpeedSpinBox);
-        configDialogBox->addLayout(configDialogBox0);
-        connect(configDialogForceReadSpeedCheckBox, SIGNAL(stateChanged(int)), this, SLOT(configDialogForceReadSpeedChanged(int)));
-
-        QHBoxLayout *configDialogBox1 = new QHBoxLayout();
-        QLabel *configDialogForceEndiannessLabel = new QLabel(i18nc("Byte-Order", "Endianness:"), configDialogWidget);
-        configDialogBox1->addWidget(configDialogForceEndiannessLabel);
-        configDialogForceEndiannessComboBox = new QComboBox(configDialogWidget);
-        configDialogForceEndiannessComboBox->addItem("Auto");
-        configDialogForceEndiannessComboBox->addItem("Little endian");
-        configDialogForceEndiannessComboBox->addItem("Big endian");
-        configDialogBox1->addWidget(configDialogForceEndiannessComboBox);
-        configDialogBox->addLayout(configDialogBox1);
-
-        QHBoxLayout *configDialogBox2 = new QHBoxLayout();
-        QLabel *configDialogMaximumRetriesLabel = new QLabel(i18n("Maximum read retries:"), configDialogWidget);
-        configDialogBox2->addWidget(configDialogMaximumRetriesLabel);
-        configDialogMaximumRetriesSpinBox = new QSpinBox(configDialogWidget);
-        configDialogMaximumRetriesSpinBox->setRange(0, 100);
-        configDialogBox2->addWidget(configDialogMaximumRetriesSpinBox);
-        configDialogBox->addLayout(configDialogBox2);
-
-        QHBoxLayout *configDialogBox3 = new QHBoxLayout(configDialogWidget);
-        configDialogEnableParanoiaCheckBox = new QCheckBox(i18n("Enable paranoia"), configDialogWidget);
-        configDialogBox3->addWidget(configDialogEnableParanoiaCheckBox);
-        configDialogBox->addLayout(configDialogBox3);
-
-        QHBoxLayout *configDialogBox4 = new QHBoxLayout(configDialogWidget);
-        configDialogEnableExtraParanoiaCheckBox = new QCheckBox(i18n("Enable extra paranoia"), configDialogWidget);
-        configDialogBox4->addWidget(configDialogEnableExtraParanoiaCheckBox);
-        configDialogBox->addLayout(configDialogBox4);
-
-        configDialog.data()->setMainWidget(configDialogWidget);
-        connect(configDialog.data(), SIGNAL(okClicked()), this, SLOT(configDialogSave()));
-        connect(configDialog.data(), SIGNAL(defaultClicked()), this, SLOT(configDialogDefault()));
-    }
-    configDialogForceReadSpeedCheckBox->setChecked(forceReadSpeed > 0);
-    configDialogForceReadSpeedSpinBox->setValue(forceReadSpeed);
-    configDialogForceEndiannessComboBox->setCurrentIndex(forceEndianness);
-    configDialogMaximumRetriesSpinBox->setValue(maximumRetries);
-    configDialogEnableParanoiaCheckBox->setChecked(enableParanoia);
-    configDialogEnableExtraParanoiaCheckBox->setChecked(enableExtraParanoia);
-
-    configDialogForceReadSpeedChanged(configDialogForceReadSpeedCheckBox->checkState());
-
-    configDialog.data()->show();
+    if (auto dialog = dynamic_cast<ConfigDialog *>(configDialog.data()))
+        dialog->show(forceReadSpeed, forceEndianness, maximumRetries, enableParanoia, enableExtraParanoia);
 }
 
-void soundkonverter_ripper_cdparanoia::configDialogForceReadSpeedChanged(int state)
+void soundkonverter_ripper_cdparanoia::setValues(int forceReadSpeed, int forceEndianness, int maximumRetries, bool enableParanoia, bool enableExtraParanoia)
 {
-    if (configDialog.data()) {
-        configDialogForceReadSpeedSpinBox->setEnabled(state == Qt::Checked);
-    }
-}
+    KSharedConfig::Ptr conf = KSharedConfig::openConfig();
+    KConfigGroup group;
 
-void soundkonverter_ripper_cdparanoia::configDialogSave()
-{
-    if (configDialog.data()) {
-        forceReadSpeed = configDialogForceReadSpeedCheckBox->isChecked() ? configDialogForceReadSpeedSpinBox->value() : 0;
-        forceEndianness = configDialogForceEndiannessComboBox->currentIndex();
-        maximumRetries = configDialogMaximumRetriesSpinBox->value();
-        enableParanoia = configDialogEnableParanoiaCheckBox->isChecked();
-        enableExtraParanoia = configDialogEnableExtraParanoiaCheckBox->isChecked();
-
-        KSharedConfig::Ptr conf = KSharedConfig::openConfig();
-        KConfigGroup group;
-
-        group = conf->group("Plugin-" + name());
-        group.writeEntry("forceReadSpeed", forceReadSpeed);
-        group.writeEntry("forceEndianness", forceEndianness);
-        group.writeEntry("maximumRetries", maximumRetries);
-        group.writeEntry("enableParanoia", enableParanoia);
-        group.writeEntry("enableExtraParanoia", enableExtraParanoia);
-
-        configDialog.data()->deleteLater();
-    }
-}
-
-void soundkonverter_ripper_cdparanoia::configDialogDefault()
-{
-    if (configDialog.data()) {
-        configDialogForceReadSpeedCheckBox->setChecked(false);
-        configDialogForceReadSpeedSpinBox->setValue(1);
-        configDialogForceEndiannessComboBox->setCurrentIndex(0);
-        configDialogMaximumRetriesSpinBox->setValue(20);
-        configDialogEnableParanoiaCheckBox->setChecked(true);
-        configDialogEnableExtraParanoiaCheckBox->setChecked(true);
-    }
+    group = conf->group("Plugin-" + name());
+    group.writeEntry("forceReadSpeed", forceReadSpeed);
+    group.writeEntry("forceEndianness", forceEndianness);
+    group.writeEntry("maximumRetries", maximumRetries);
+    group.writeEntry("enableParanoia", enableParanoia);
+    group.writeEntry("enableExtraParanoia", enableExtraParanoia);
 }
 
 bool soundkonverter_ripper_cdparanoia::hasInfo()
@@ -230,8 +252,8 @@ int soundkonverter_ripper_cdparanoia::rip(const QString &device, int track, int 
     newItem->id = lastId++;
     newItem->process = new KProcess(newItem);
     newItem->process->setOutputChannelMode(KProcess::MergedChannels);
-    connect(newItem->process, SIGNAL(readyRead()), this, SLOT(processOutput()));
-    connect(newItem->process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processExit(int, QProcess::ExitStatus)));
+    connect(newItem->process, &KProcess::readyRead, this, &soundkonverter_ripper_cdparanoia::processOutput);
+    connect(newItem->process, &KProcess::finished, this, &soundkonverter_ripper_cdparanoia::processExit);
 
     newItem->process->clearProgram();
     newItem->process->setShellCommand(command.join(" "));
@@ -299,7 +321,7 @@ void soundkonverter_ripper_cdparanoia::processOutput()
 {
     for (int i = 0; i < backendItems.size(); i++) {
         if (backendItems.at(i)->process == QObject::sender()) {
-            QString output = backendItems.at(i)->process->readAllStandardOutput().data();
+            QString output = backendItems.at(i)->process->readAllStandardOutput().constData();
             RipperPluginItem *pluginItem = qobject_cast<RipperPluginItem *>(backendItems.at(i));
 
             float progress = parseOutput(output, &pluginItem->data.fromSector, &pluginItem->data.toSector);
@@ -317,6 +339,6 @@ void soundkonverter_ripper_cdparanoia::processOutput()
     }
 }
 
-K_PLUGIN_FACTORY(ripper_cdparanoia, registerPlugin<soundkonverter_ripper_cdparanoia>();)
+K_PLUGIN_FACTORY_WITH_JSON(soundkonverter_ripper_cdparanoiaFactory, "soundkonverter_ripper_cdparanoia.json", registerPlugin<soundkonverter_ripper_cdparanoia>();)
 
 #include "soundkonverter_ripper_cdparanoia.moc"

@@ -1,4 +1,3 @@
-
 #ifndef MACCODECWIDGET_H
 #define MACCODECWIDGET_H
 

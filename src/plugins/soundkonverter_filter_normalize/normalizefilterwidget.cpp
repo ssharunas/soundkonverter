@@ -1,4 +1,3 @@
-
 #include "normalizefilterglobal.h"
 
 #include "normalizefilteroptions.h"

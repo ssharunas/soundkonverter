@@ -1,4 +1,3 @@
-
 #include "replaygainscanner.h"
 
 #include "codecproblems.h"

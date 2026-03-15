@@ -1,5 +1,3 @@
-
-
 #ifndef ABOUTPLUGINS_H
 #define ABOUTPLUGINS_H
 

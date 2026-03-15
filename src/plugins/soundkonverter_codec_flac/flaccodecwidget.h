@@ -1,4 +1,3 @@
-
 #ifndef FLACCODECWIDGET_H
 #define FLACCODECWIDGET_H
 

@@ -1,4 +1,3 @@
-
 #include "flacreplaygainglobal.h"
 
 #include "soundkonverter_replaygain_metaflac.h"

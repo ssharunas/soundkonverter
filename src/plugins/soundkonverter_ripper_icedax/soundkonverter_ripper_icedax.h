@@ -1,9 +1,9 @@
-
 #ifndef SOUNDKONVERTER_RIPPER_ICEDAX_H
 #define SOUNDKONVERTER_RIPPER_ICEDAX_H
 
 #include "../../core/ripperplugin.h"
 
+#include <KPluginFactory>
 #include <KProcess>
 #include <QList>
 #include <QUrl>

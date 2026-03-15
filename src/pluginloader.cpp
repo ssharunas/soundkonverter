@@ -256,6 +256,40 @@ void PluginLoader::load()
             logger->log(1000, "<pre>\t<span style=\"color:red\">failed to load plugin: " + gainPlugin.fileName() + "</span></pre>");
         }
     }
+
+    const QVector<KPluginMetaData> ripperPluginsVect = KPluginMetaData::findPlugins("soundkonverterplugins/ripper");
+    for (const KPluginMetaData &ripperPlugin : ripperPluginsVect) {
+        if (auto pluginResult = KPluginFactory::instantiatePlugin<RipperPlugin>(ripperPlugin, this, QVariantList())) {
+            auto plugin = pluginResult.plugin;
+            logger->log(1000, "\tloading plugin: " + plugin->name());
+            plugin->scanForBackends();
+            QList<ConversionPipeTrunk> codecTable = plugin->codecTable();
+
+            for (int j = 0; j < codecTable.count(); j++) {
+                codecTable[j].plugin = plugin;
+                conversionPipeTrunks.append(codecTable.at(j));
+                QString spaces;
+                spaces.fill(' ', 12 - codecTable.at(j).codecTo.length());
+
+                logger->log(1000,
+                            "<pre>\t\t\t"
+                                + QString("%1%2(%3, %4)")
+                                      .arg(codecTable.at(j).codecTo)
+                                      .arg(spaces)
+                                      .arg(codecTable.at(j).enabled ? "<span style=\"color:green\">enabled</span>" : "<span style=\"color:red\">disabled</span>")
+                                      .arg(codecTable.at(j).data.canRipEntireCd ? "<span style=\"color:green\">can rip to single file</span>"
+                                                                                : "<span style=\"color:red\">can't rip to single file</span>")
+                                + "</pre>");
+
+                addFormatInfo(codecTable.at(j).codecTo, plugin);
+            }
+            logger->log(1000, "");
+
+            ripperPlugins << plugin;
+        } else {
+            logger->log(1000, "<pre>\t<span style=\"color:red\">failed to load plugin: " + ripperPlugin.fileName() + "</span></pre>");
+        }
+    }
     /*
 
      offers = KServiceTypeTrader::self()->query("soundKonverter/RipperPlugin");

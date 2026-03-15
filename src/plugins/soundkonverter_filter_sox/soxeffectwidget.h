@@ -1,9 +1,9 @@
-
 #ifndef SOXEFFECTWIDGET_H
 #define SOXEFFECTWIDGET_H
 
-#include "../../core/codecwidget.h"
 #include "soxfilteroptions.h"
+
+#include <QWidget>
 
 class KComboBox;
 class QPushButton;

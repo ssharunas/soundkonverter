@@ -1,4 +1,3 @@
-
 #include "ffmpegcodecglobal.h"
 
 #include "../../core/conversionoptions.h"
@@ -445,7 +444,7 @@ void soundkonverter_codec_ffmpeg::processOutput()
 
 void soundkonverter_codec_ffmpeg::infoProcessOutput()
 {
-    infoProcessOutputData.append(infoProcess.data()->readAllStandardOutput().data());
+    infoProcessOutputData.append(infoProcess.data()->readAllStandardOutput().constData());
 }
 
 void soundkonverter_codec_ffmpeg::infoProcessExit(int exitCode, QProcess::ExitStatus exitStatus)

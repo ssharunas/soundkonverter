@@ -1,4 +1,3 @@
-
 #include "neroaaccodecglobal.h"
 
 #include "../../core/conversionoptions.h"

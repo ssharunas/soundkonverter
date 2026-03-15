@@ -1,4 +1,3 @@
-
 #include "ttaenccodecglobal.h"
 
 #include "../../core/conversionoptions.h"

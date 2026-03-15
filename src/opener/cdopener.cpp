@@ -422,11 +422,11 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
         device = _device;
     } else {
         const QMap<QString, QString> devices = cdDevices();
-        if (devices.count() <= 0) {
+        if (devices.isEmpty()) {
             noCdFound = true;
             return;
         } else if (devices.count() == 1) {
-            device = devices.keys().at(0);
+            device = devices.firstKey();
         } else {
             QStringList list;
             foreach (const QString &desc, devices.values()) {
@@ -1125,7 +1125,7 @@ void CDOpener::proceedClicked()
     }
 
     if (options->currentConversionOptions() && options->currentConversionOptions()->outputDirectoryMode == OutputDirectory::Source) {
-        options->setOutputDirectoryMode((int)OutputDirectory::MetaData);
+        options->setOutputDirectoryMode(OutputDirectory::MetaData);
     }
 
     cdOpenerWidget->hide();

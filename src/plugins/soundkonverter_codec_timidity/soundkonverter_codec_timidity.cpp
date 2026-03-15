@@ -1,4 +1,3 @@
-
 #include "timiditycodecglobal.h"
 
 #include "../../core/conversionoptions.h"

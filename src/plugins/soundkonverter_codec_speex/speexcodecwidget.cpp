@@ -1,4 +1,3 @@
-
 #include "speexcodecglobal.h"
 
 #include "../../core/conversionoptions.h"

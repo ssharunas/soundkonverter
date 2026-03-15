@@ -1,4 +1,3 @@
-
 #include "opustoolscodecglobal.h"
 
 #include "../../core/conversionoptions.h"

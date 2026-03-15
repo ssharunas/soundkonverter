@@ -1,4 +1,3 @@
-
 #ifndef SOUNDKONVERTER_REPLAYGAIN_AACGAIN_H
 #define SOUNDKONVERTER_REPLAYGAIN_AACGAIN_H
 
@@ -55,9 +54,6 @@ private:
 private slots:
     /** The undo process has exited */
     virtual void undoProcessExit(int exitCode, QProcess::ExitStatus exitStatus);
-
-    void configDialogSave();
-    void configDialogDefault();
 };
 
 #endif // _SOUNDKONVERTER_REPLAYGAIN_AACGAIN_H_

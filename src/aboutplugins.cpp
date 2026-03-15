@@ -1,4 +1,3 @@
-
 #include "aboutplugins.h"
 #include "config.h"
 

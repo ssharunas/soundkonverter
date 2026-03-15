@@ -1,4 +1,3 @@
-
 #include "musepackreplaygainglobal.h"
 
 #include "soundkonverter_replaygain_musepackgain.h"

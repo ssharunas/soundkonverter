@@ -1,4 +1,3 @@
-
 #include "ffmpegcodecglobal.h"
 
 #include "../../core/conversionoptions.h"

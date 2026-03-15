@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "cyberbeat@gmx.de",
+                "Name": "Volker Härtel"
+            }
+        ],
+        "License": "GPL",
+        "Name": "soundKonverter icedax plugin",
+        "ServiceTypes": [
+            "soundKonverter/RipperPlugin"
+        ],
+        "Version": "1.0"
+    }
+}

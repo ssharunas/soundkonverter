@@ -1,6 +1,5 @@
-
 #include "replaygainfilelistitem.h"
-// #include <QResizeEvent> // NOTE needed by drag'n'drop events - but why?
+
 #include <QDir>
 #include <QFileInfo>
 #include <QPainter>
@@ -169,31 +168,30 @@ void ReplayGainFileListItemDelegate::paint(QPainter *painter, const QStyleOption
 
     painter->fillRect(option.rect, backgroundColor);
 
-    auto margins = item->treeWidget()->contentsMargins();
+    if (item) {
+        QMargins margins = item->treeWidget()->contentsMargins();
+        QRect m_rect = QRect(option.rect.x() + margins.left(), option.rect.y(), option.rect.width() - margins.left() - margins.right(), option.rect.height());
 
-    QRect m_rect = QRect(option.rect.x() + margins.left(), option.rect.y(), option.rect.width() - margins.left() - margins.right(), option.rect.height());
+        switch (index.column()) {
+        case 0: {
+            QRect textRect = painter->boundingRect(QRect(), Qt::AlignLeft | Qt::TextSingleLine, item->text(index.column()));
 
-    switch (index.column()) {
-    case 0: {
-        QRect textRect = painter->boundingRect(QRect(), Qt::AlignLeft | Qt::TextSingleLine, item->text(index.column()));
-
-        if (textRect.width() < m_rect.width()) {
-            painter->drawText(m_rect, Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
-        } else {
-            painter->drawText(m_rect, Qt::AlignRight | Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
-            QLinearGradient linearGrad(QPoint(m_rect.x(), 0), QPoint(m_rect.x() + 15, 0));
-            linearGrad.setColorAt(0, backgroundColor);
-            backgroundColor.setAlpha(0);
-            linearGrad.setColorAt(1, backgroundColor);
-            painter->fillRect(m_rect.x(), m_rect.y(), 15, m_rect.height(), linearGrad);
+            if (textRect.width() < m_rect.width()) {
+                painter->drawText(m_rect, Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
+            } else {
+                painter->drawText(m_rect, Qt::AlignRight | Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
+                QLinearGradient linearGrad(QPoint(m_rect.x(), 0), QPoint(m_rect.x() + 15, 0));
+                linearGrad.setColorAt(0, backgroundColor);
+                backgroundColor.setAlpha(0);
+                linearGrad.setColorAt(1, backgroundColor);
+                painter->fillRect(m_rect.x(), m_rect.y(), 15, m_rect.height(), linearGrad);
+            }
+            break;
         }
-        break;
+        case 1:
+        case 2:
+            painter->drawText(m_rect, Qt::AlignRight | Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
+        }
     }
-    case 1:
-    case 2: {
-        painter->drawText(m_rect, Qt::AlignRight | Qt::TextSingleLine | Qt::TextExpandTabs, item->text(index.column()));
-    }
-    }
-
     painter->restore();
 }

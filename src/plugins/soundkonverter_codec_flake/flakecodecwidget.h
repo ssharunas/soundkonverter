@@ -1,4 +1,3 @@
-
 #ifndef FLAKECODECWIDGET_H
 #define FLAKECODECWIDGET_H
 

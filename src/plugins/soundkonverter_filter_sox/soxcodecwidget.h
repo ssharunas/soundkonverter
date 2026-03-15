@@ -1,4 +1,3 @@
-
 #ifndef SOXCODECWIDGET_H
 #define SOXCODECWIDGET_H
 

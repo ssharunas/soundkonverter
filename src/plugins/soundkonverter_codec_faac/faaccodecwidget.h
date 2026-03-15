@@ -1,4 +1,3 @@
-
 #ifndef FAACCODECWIDGET_H
 #define FAACCODECWIDGET_H
 

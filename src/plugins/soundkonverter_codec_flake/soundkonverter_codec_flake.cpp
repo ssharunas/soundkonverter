@@ -1,4 +1,3 @@
-
 #include "flakecodecglobal.h"
 
 #include "../../core/conversionoptions.h"

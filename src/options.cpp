@@ -1,9 +1,7 @@
-
 #include "options.h"
 #include "config.h"
 #include "optionsdetailed.h"
 #include "optionssimple.h"
-#include "outputdirectory.h"
 #include "pluginloader.h"
 
 #include <KLocalizedString>
@@ -92,10 +90,10 @@ bool Options::setCurrentConversionOptions(const ConversionOptions *conversionOpt
     return success;
 }
 
-void Options::simpleOutputDirectoryModeChanged(const int mode)
+void Options::simpleOutputDirectoryModeChanged(const OutputDirectory::Mode mode)
 {
     if (optionsDetailed && optionsDetailed->outputDirectory)
-        optionsDetailed->outputDirectory->setMode((OutputDirectory::Mode)mode);
+        optionsDetailed->outputDirectory->setMode(mode);
 
     config->data.general.lastOutputDirectoryMode = mode;
 }
@@ -163,10 +161,10 @@ void Options::setFormat(const QString &format)
     simpleOptionsChanged();
 }
 
-void Options::setOutputDirectoryMode(int mode)
+void Options::setOutputDirectoryMode(OutputDirectory::Mode mode)
 {
     QString directory;
-    optionsSimple->setCurrentOutputDirectoryMode((OutputDirectory::Mode)mode);
+    optionsSimple->setCurrentOutputDirectoryMode(mode);
     if (mode == (int)OutputDirectory::Specify)
         directory = config->data.general.specifyOutputDirectory;
     else if (mode == (int)OutputDirectory::Source)
@@ -176,7 +174,7 @@ void Options::setOutputDirectoryMode(int mode)
     else if (mode == (int)OutputDirectory::CopyStructure)
         directory = config->data.general.copyStructureOutputDirectory;
     optionsSimple->setCurrentOutputDirectory(directory);
-    simpleOutputDirectoryModeChanged((OutputDirectory::Mode)mode);
+    simpleOutputDirectoryModeChanged(mode);
     simpleOutputDirectoryChanged(directory);
 }
 

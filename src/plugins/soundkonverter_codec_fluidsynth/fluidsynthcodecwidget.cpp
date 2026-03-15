@@ -1,4 +1,3 @@
-
 #include "fluidsynthcodecglobal.h"
 
 #include "../../core/conversionoptions.h"

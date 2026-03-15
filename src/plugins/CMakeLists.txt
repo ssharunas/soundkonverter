@@ -2,8 +2,6 @@ file(GLOB _plugins *)
 
 foreach(_current_plugin ${_plugins})
 	if(IS_DIRECTORY ${_current_plugin})
-	   if(${_current_plugin} MATCHES "_codec_" OR ${_current_plugin} MATCHES "_filter_" OR ${_current_plugin} MATCHES "_replaygain_")  # TODO: Remove when other plugin work
-		  add_subdirectory(${_current_plugin})
-	   endif()
+	  add_subdirectory(${_current_plugin})
    endif(IS_DIRECTORY ${_current_plugin})
 endforeach(_current_plugin)

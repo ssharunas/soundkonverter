@@ -1,4 +1,3 @@
-
 #ifndef SOXFILTERWIDGET_H
 #define SOXFILTERWIDGET_H
 

@@ -67,7 +67,7 @@ private:
     Config *config;
 
 Q_SIGNALS:
-    void modeChanged(int);
+    void modeChanged(Mode);
     void directoryChanged(const QString &);
 };
 

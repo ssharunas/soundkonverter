@@ -1,8 +1,6 @@
-
 #ifndef REPLAYGAINFILELISTITEM_H
 #define REPLAYGAINFILELISTITEM_H
 
-#include "core/replaygainplugin.h"
 #include "metadata/tagengine.h"
 
 #include <QItemDelegate>

@@ -1,4 +1,3 @@
-
 #include "shortencodecglobal.h"
 
 #include "../../core/conversionoptions.h"
