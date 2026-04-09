@@ -37,10 +37,9 @@
 #include <solid/device.h>
 #include <solid/opticaldisc.h>
 
-PlayerWidget::PlayerWidget(Phonon::MediaObject *mediaObject, int _track, QTreeWidgetItem *_treeWidgetItem, QWidget *parent, Qt::WindowFlags f)
+PlayerWidget::PlayerWidget(Phonon::MediaObject *mediaObject, int _track, CDOpener *parent, Qt::WindowFlags f)
     : QWidget(parent, f)
-    , track(_track)
-    , m_treeWidgetItem(_treeWidgetItem)
+    , mTrack(_track)
 {
     const int fontHeight = QFontMetrics(QApplication::font()).boundingRect("M").size().height();
 
@@ -50,17 +49,20 @@ PlayerWidget::PlayerWidget(Phonon::MediaObject *mediaObject, int _track, QTreeWi
     pStartPlayback = new QPushButton(QIcon::fromTheme("media-playback-start"), "", this);
     pStartPlayback->setFixedSize(1.5 * fontHeight, 1.5 * fontHeight);
     trackPlayerBox->addWidget(pStartPlayback);
-    connect(pStartPlayback, &QAbstractButton::clicked, this, &PlayerWidget::startPlaybackClicked);
+    connect(pStartPlayback, &QAbstractButton::clicked, this, &PlayerWidget::startPlayback);
+
     pStopPlayback = new QPushButton(QIcon::fromTheme("media-playback-stop"), "", this);
     pStopPlayback->setFixedSize(1.5 * fontHeight, 1.5 * fontHeight);
     pStopPlayback->hide();
     trackPlayerBox->addWidget(pStopPlayback);
-    connect(pStopPlayback, &QAbstractButton::clicked, this, &PlayerWidget::stopPlaybackClicked);
+    connect(pStopPlayback, &QAbstractButton::clicked, this, &PlayerWidget::stopPlayback);
+
     seekSlider = new Phonon::SeekSlider(this);
     seekSlider->setMediaObject(mediaObject);
     seekSlider->setIconVisible(false);
     seekSlider->hide();
     trackPlayerBox->addWidget(seekSlider, 1);
+
     trackPlayerBox->addStretch();
 }
 
@@ -68,36 +70,21 @@ PlayerWidget::~PlayerWidget()
 {
 }
 
-void PlayerWidget::startPlaybackClicked()
+int PlayerWidget::track() const
 {
-    /*    playing = true;
-        pStartPlayback->hide();
-        pStopPlayback->show();
-        seekSlider->show();*/
-    emit startPlayback(track);
+    return mTrack;
 }
 
-void PlayerWidget::stopPlaybackClicked()
+void PlayerWidget::setPlaying(bool isPlaing)
 {
-    /*    playing = false;
-        pStartPlayback->show();
-        pStopPlayback->hide();
-        seekSlider->hide();*/
-    emit stopPlayback();
-}
-
-void PlayerWidget::trackChanged(int _track)
-{
-    if (_track != track) {
-        playing = false;
-        pStartPlayback->show();
-        pStopPlayback->hide();
-        seekSlider->hide();
-    } else {
-        playing = true;
+    if (isPlaing) {
         pStartPlayback->hide();
         pStopPlayback->show();
         seekSlider->show();
+    } else {
+        pStartPlayback->show();
+        pStopPlayback->hide();
+        seekSlider->hide();
     }
 }
 
@@ -110,6 +97,7 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
     , cddb(0)
     , cdTextFound(false)
     , cddbFound(false)
+    , bLastIsPlayingState(false)
 {
     page = CdOpenPage;
 
@@ -231,9 +219,8 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
     trackList->header()->setSectionResizeMode(Column_Artist, QHeaderView::ResizeToContents);
     trackList->header()->setSectionResizeMode(Column_Composer, QHeaderView::ResizeToContents);
     trackList->header()->setSectionResizeMode(Column_Title, QHeaderView::ResizeToContents);
-    //     trackList->setMouseTracking( true );
+
     connect(trackList, &QTreeWidget::itemSelectionChanged, this, &CDOpener::trackChanged);
-    //     connect( trackList, SIGNAL(itemEntered(QTreeWidgetItem*,int)), this, SLOT(itemHighlighted(QTreeWidgetItem*,int)) );
     gridLayout->setRowStretch(1, 1);
 
     // create the box at the bottom for editing the tags
@@ -320,14 +307,12 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
     audioOutput->setVolume(0.5);
     mediaObject = new Phonon::MediaObject(this);
     mediaObject->setTickInterval(500);
+    connect(mediaObject, &Phonon::MediaObject::stateChanged, this, &CDOpener::playbackStateChanged);
 
     Phonon::createPath(mediaObject, audioOutput);
 
     mediaController = new Phonon::MediaController(mediaObject);
     mediaController->setAutoplayTitles(false);
-
-    connect(mediaController, &Phonon::MediaController::titleChanged, this, &CDOpener::playbackTitleChanged);
-    connect(mediaObject, &Phonon::MediaObject::stateChanged, this, &CDOpener::playbackStateChanged);
 
     // Cd Opener Overlay Widget
 
@@ -335,7 +320,7 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
     mainGrid->addWidget(cdOpenerOverlayWidget, 2, 0);
     QHBoxLayout *cdOpenerOverlayLayout = new QHBoxLayout();
     cdOpenerOverlayWidget->setLayout(cdOpenerOverlayLayout);
-    //     lOverlayLabel = new QLabel( i18n("Please wait, trying to read audio CD ..."), cdOpenerOverlayWidget );
+
     lOverlayLabel = new QLabel(cdOpenerOverlayWidget);
     cdOpenerOverlayLayout->addWidget(lOverlayLabel);
     lOverlayLabel->setAlignment(Qt::AlignCenter);
@@ -416,7 +401,7 @@ CDOpener::CDOpener(Config *_config, const QString &_device, QWidget *parent, Qt:
 
     // set up timeout timer
     timeoutTimer.setSingleShot(true);
-    connect(&timeoutTimer, &QTimer::timeout, this, &CDOpener::timeout);
+    connect(&timeoutTimer, &QTimer::timeout, this, &CDOpener::fadeOut);
 
     if (!_device.isEmpty()) {
         device = _device;
@@ -484,6 +469,16 @@ void CDOpener::readConfig()
 {
     KConfigGroup group(KSharedConfig::openStateConfig(), "CDOpener");
     KWindowConfig::restoreWindowSize(windowHandle(), group);
+}
+
+bool CDOpener::isPlaying()
+{
+    return isPlaying(mediaObject->state());
+}
+
+bool CDOpener::isPlaying(Phonon::State state)
+{
+    return state == Phonon::PlayingState || state == Phonon::BufferingState;
 }
 
 void CDOpener::setProfile(const QString &profile)
@@ -606,14 +601,16 @@ bool CDOpener::openCdDevice(const QString &_device)
         data.append(newTags->title);
         data.append(QString().asprintf("%i:%02i", newTags->length / 60, newTags->length % 60));
         QTreeWidgetItem *item = new QTreeWidgetItem(trackList, data);
-        PlayerWidget *playerWidget = new PlayerWidget(mediaObject, newTags->track, item, this);
-        //         playerWidget->hide();
+
+        PlayerWidget *playerWidget = new PlayerWidget(mediaObject, newTags->track, this);
         connect(playerWidget, &PlayerWidget::startPlayback, this, &CDOpener::startPlayback);
         connect(playerWidget, &PlayerWidget::stopPlayback, this, &CDOpener::stopPlayback);
         playerWidgets.append(playerWidget);
+
         trackList->setItemWidget(item, Column_Player, playerWidget);
         item->setCheckState(0, Qt::Checked);
     }
+
     trackList->resizeColumnToContents(Column_Rip);
     trackList->resizeColumnToContents(Column_Track);
     trackList->resizeColumnToContents(Column_Length);
@@ -633,7 +630,6 @@ bool CDOpener::openCdDevice(const QString &_device)
 
     // request cddb data
     requestCddb(true);
-
     return true;
 }
 
@@ -732,11 +728,6 @@ void CDOpener::lookup_cddb_done(KCDDB::Result result)
 
     artistChanged(lArtist->text());
 
-    fadeOut();
-}
-
-void CDOpener::timeout()
-{
     fadeOut();
 }
 
@@ -1236,38 +1227,41 @@ void CDOpener::saveCuesheetClicked()
     cueFile.close();
 }
 
-// void CDOpener::itemHighlighted( QTreeWidgetItem *item, int column )
-// {
-//     for( int i=0; i<playerWidgets.count(); i++ )
-//     {
-//         if( item == playerWidgets.at(i)->treeWidgetItem() )
-//             playerWidgets[i]->show();
-//         else if( !playerWidgets.at(i)->isPlaying() )
-//             playerWidgets[i]->hide();
-//     }
-// }
-
-void CDOpener::startPlayback(int track)
+void CDOpener::startPlayback()
 {
-    for (int i = 0; i < playerWidgets.count(); i++) {
-        if (i + 1 != track && playerWidgets.at(i)->isPlaying())
-            playerWidgets[i]->trackChanged(track);
-    }
+    PlayerWidget *widget = qobject_cast<PlayerWidget *>(sender());
 
-    mediaController->setCurrentTitle(track);
-    mediaObject->play();
+    if (widget) {
+        if (!isPlaying())
+            mediaObject->play();
+
+        int expectedTrack = widget->track();
+
+        if (mediaController->currentTitle() != expectedTrack)
+            mediaController->setCurrentTitle(expectedTrack);
+    }
 }
 
 void CDOpener::stopPlayback()
 {
+    PlayerWidget *widget = qobject_cast<PlayerWidget *>(sender());
+
+    if (widget)
+        widget->setPlaying(false);
+
     mediaObject->stop();
 }
 
-void CDOpener::playbackTitleChanged(int title)
+void CDOpener::updateWidgetsState(bool isPlaying)
 {
-    for (int i = 0; i < playerWidgets.count(); i++) {
-        if ((i + 1 != title && playerWidgets.at(i)->isPlaying()) || (i + 1 == title && !playerWidgets.at(i)->isPlaying()))
-            playerWidgets[i]->trackChanged(title);
+    if (isPlaying) {
+        int track = mediaController->currentTitle();
+
+        foreach (PlayerWidget *item, playerWidgets)
+            item->setPlaying(item->track() == track);
+    } else {
+        foreach (PlayerWidget *item, playerWidgets)
+            item->setPlaying(false);
     }
 }
 
@@ -1275,9 +1269,9 @@ void CDOpener::playbackStateChanged(Phonon::State newstate, Phonon::State oldsta
 {
     Q_UNUSED(oldstate)
 
-    if (newstate == Phonon::StoppedState) {
-        playbackTitleChanged(0);
-    } else if (newstate == Phonon::PlayingState) {
-        playbackTitleChanged(mediaController->currentTitle());
-    }
+    if (bLastIsPlayingState == isPlaying(newstate))
+        return;
+
+    bLastIsPlayingState = isPlaying(newstate);
+    updateWidgetsState(bLastIsPlayingState);
 }

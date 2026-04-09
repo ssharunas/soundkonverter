@@ -36,39 +36,27 @@ class QTreeWidgetItem;
 class QLabel;
 class QCheckBox;
 class TagData;
+class CDOpener;
 
 class PlayerWidget : public QWidget
 {
     Q_OBJECT
 public:
-    PlayerWidget(Phonon::MediaObject *mediaObject, int _track, QTreeWidgetItem *_treeWidgetItem, QWidget *parent, Qt::WindowFlags f = {});
+    PlayerWidget(Phonon::MediaObject *mediaObject, int _track, CDOpener *parent, Qt::WindowFlags f = {});
     ~PlayerWidget();
 
-    void trackChanged(int track);
-    bool isPlaying()
-    {
-        return playing;
-    }
-    QTreeWidgetItem *treeWidgetItem()
-    {
-        return m_treeWidgetItem;
-    }
+    void setPlaying(bool isPlaing);
+    int track() const;
 
 private:
-    int track;
-    bool playing;
-    QTreeWidgetItem *m_treeWidgetItem;
+    int mTrack;
 
     QPushButton *pStartPlayback;
     QPushButton *pStopPlayback;
     Phonon::SeekSlider *seekSlider;
 
-private slots:
-    void startPlaybackClicked();
-    void stopPlaybackClicked();
-
 Q_SIGNALS:
-    void startPlayback(int track);
+    void startPlayback();
     void stopPlayback();
 };
 
@@ -110,6 +98,10 @@ public slots:
 private:
     void writeConfig();
     void readConfig();
+    bool isPlaying(Phonon::State state);
+    bool isPlaying();
+
+    bool bLastIsPlayingState;
 
     /** returns a list of devices holding audio cds plus a short description (track count) */
     QMap<QString, QString> cdDevices();
@@ -228,11 +220,11 @@ private:
 
     void adjustArtistColumn();
     void adjustComposerColumn();
+    void updateWidgetsState(bool isPlaying);
 
 private slots:
     void requestCddb(bool autoRequest = false);
     void lookup_cddb_done(KCDDB::Result result);
-    void timeout();
 
     void trackChanged();
     void trackUpPressed();
@@ -246,16 +238,13 @@ private slots:
     void editTrackArtistClicked();
     void editTrackComposerClicked();
     void editTrackCommentClicked();
-    //     void itemHighlighted( QTreeWidgetItem *item, int column );
 
-    void startPlayback(int track);
+    void startPlayback();
     void stopPlayback();
-    void playbackTitleChanged(int title);
     void playbackStateChanged(Phonon::State newstate, Phonon::State oldstate);
 
     void proceedClicked();
     void addClicked();
-    //     void addAsOneTrackClicked();
     void saveCuesheetClicked();
 
     void fadeAnim();

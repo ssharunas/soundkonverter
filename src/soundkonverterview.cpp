@@ -200,7 +200,6 @@ bool soundKonverterView::showCdDialog(const QString &device, QString _profile, Q
 
     bool success = false;
 
-    QString message;
     QStringList errorList;
     if (!config->pluginLoader()->canDecode("audio cd", &errorList)) {
         QList<CodecProblems::Problem> problemList;
