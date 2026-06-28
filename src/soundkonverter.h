@@ -40,6 +40,7 @@ public:
     ~soundKonverter();
 
     virtual void saveProperties(KConfigGroup &configGroup);
+    virtual void readProperties(KConfigGroup &config);
 
     void showSystemTray();
     void addConvertFiles(const QList<QUrl> &urls, const QString &profile, const QString &format, const QString &directory, const QString &notifyCommand);
@@ -51,7 +52,6 @@ public:
     }
     void startConversion();
     void loadAutosaveFileList();
-    void loadFileList(const QString &fileListPath);
     void startupChecks();
 
 private slots:

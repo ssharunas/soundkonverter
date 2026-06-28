@@ -1194,6 +1194,9 @@ void FileList::load(bool user)
 
 void FileList::load(const QString &fileListPath)
 {
+    if (fileListPath.isEmpty())
+        return;
+
     if (topLevelItemCount() > 0) {
         const int ret = KMessageBox::questionTwoActions(this,
                                                         i18n("Do you want to overwrite the current file list?"),
@@ -1389,12 +1392,19 @@ void FileList::save(bool user)
         }
     }
 
+    QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+    if (!dir.exists())
+        dir.mkpath(".");
+
     const QString fileName = user ? "filelist.xml" : "filelist_autosave.xml";
-    QFile listFile(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + u'/' + fileName);
+    QFile listFile(dir.absoluteFilePath(fileName));
     if (listFile.open(QIODevice::WriteOnly)) {
         QTextStream stream(&listFile);
         stream << list.toString();
         listFile.close();
+        logger->log(1000, QString("Saved file list to %1").arg(listFile.fileName()));
+    } else {
+        logger->log(1000, QString("Failed to open file %1 for writing").arg(listFile.fileName()));
     }
 
     logger->log(1000, QString("Saving the file list took %1 ms").arg(time.elapsed()));

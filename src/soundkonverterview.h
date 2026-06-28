@@ -72,7 +72,6 @@ public slots:
     void loadFileList(bool user = true);
     void saveFileList(bool user = true);
     void updateFileList();
-    void loadFileList(const QString &fileListPath);
     void showPlaylistDialog();
     void showUrlDialog();
     void showDirDialog();

@@ -406,11 +406,6 @@ void soundKonverterView::loadAutosaveFileList()
     fileList->load(false);
 }
 
-void soundKonverterView::loadFileList(const QString &fileListPath)
-{
-    fileList->load(fileListPath);
-}
-
 void soundKonverterView::startConversion()
 {
     fileList->startConversion();

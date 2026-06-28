@@ -19,8 +19,7 @@ int main(int argc, char **argv)
     KAboutData about(QStringLiteral("soundkonverter"),
                      i18n("soundKonverter"),
                      QStringLiteral(SOUNDKONVERTER_VERSION_STRING),
-                     i18n("soundKonverter is a frontend to various audio converters, Replay Gain tools and CD rippers.\n\nPlease file bug reports at "
-                          "https://github.com/dfaust/soundkonverter/issues"),
+                     i18n("soundKonverter is a frontend to various audio converters, Replay Gain tools and CD rippers."),
                      KAboutLicense::GPL_V3,
                      i18n("(C) 2005-2017 Daniel Faust, 2024 KDE Community"));
 
@@ -49,14 +48,20 @@ int main(int argc, char **argv)
     about.setupCommandLine(&parser);
     parser.process(app);
 
+    if (app.isSessionRestored()) {
+        kRestoreMainWindows<soundKonverter>();
+    } else {
+        auto mainWindow = new soundKonverter();
+        mainWindow->setObjectName("soundKonverter#");
+        mainWindow->show();
+    }
+
     // if( !soundKonverterApp::start() )
     //{
     //     return 0;
     // }
 
     // soundKonverterApp app;
-    auto mainWindow = new soundKonverter();
-    mainWindow->show();
 
     /*
     static bool first = true;

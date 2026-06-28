@@ -81,8 +81,12 @@ void soundKonverter::saveProperties(KConfigGroup &configGroup)
     Q_UNUSED(configGroup)
 
     m_view->killConversion();
-
     m_view->saveFileList(false);
+}
+
+void soundKonverter::readProperties(KConfigGroup &config)
+{
+    m_view->loadFileList(false);
 }
 
 void soundKonverter::showSystemTray()
@@ -167,7 +171,9 @@ void soundKonverter::setupActions()
     QAction *save = actionCollection()->addAction("save");
     save->setText(i18n("Save file list"));
     save->setIcon(QIcon::fromTheme("document-save"));
-    connect(save, &QAction::triggered, m_view, &soundKonverterView::saveFileList);
+    connect(save, &QAction::triggered, m_view, [=]() {
+        m_view->saveFileList();
+    });
 
     actionCollection()->addAction("start", m_view->start());
 }
@@ -234,11 +240,6 @@ void soundKonverter::startConversion()
 void soundKonverter::loadAutosaveFileList()
 {
     m_view->loadAutosaveFileList();
-}
-
-void soundKonverter::loadFileList(const QString &fileListPath)
-{
-    m_view->loadFileList(fileListPath);
 }
 
 void soundKonverter::startupChecks()
